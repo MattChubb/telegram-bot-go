@@ -1,13 +1,14 @@
 package main
 
 import (
-//    tb "gopkg.in/tucnak/telebot.v2"
+    "github.com/tucnak/telebot"
     "github.com/mb-14/gomarkov"
     "bufio"
     "fmt"
     "log"
     "os"
     "strings"
+    "time"
 )
 
 const (
@@ -17,12 +18,25 @@ const (
 
 func main() {
     //Initialise
+    //Get Telegram bot token from env
+    bot_token := os.Getenv("TELEGRAM_BOT_KEY")
+
     //Initilise Telegram bot
+    bot, err := telebot.NewBot(telebot.Settings{
+        Token: bot_token,
+        Poller: &telebot.LongPoller{
+            Timeout: 10 * time.Second,
+        },
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
 
     //Initialise chain
     chain := gomarkov.NewChain(order)
 
     //Open source data dir
+    //TODO Read from _all_ the files in the dir, not just data
     source_file, err := os.Open("./source_data/data")
     if err != nil {
         log.Fatal(err)
@@ -42,6 +56,8 @@ func main() {
 
 
     //Connect Markov to Telegram
+    bot.Handle(telebot.OnText, func(m *telebot.Message) {
+
     //Process input
 
     //Identify whether to respond
@@ -51,6 +67,7 @@ func main() {
 
     //Respond with generated response
     fmt.Println(sentence)
+    })
 
 }
 
