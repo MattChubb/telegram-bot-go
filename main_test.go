@@ -65,6 +65,7 @@ func TestGenerateSentence(t *testing.T) {
         if len(got) < 2 {
             t.Errorf("prompt: %#v, got: %#v", table.input, got)
         } else {
+            //t.Logf("Got: %#v", got)
             t.Logf("Passed (%d tokens returned)", len(got))
         }
     }

@@ -7,13 +7,16 @@ import (
     "strings"
 )
 
-const tokensLengthLimit = 32
+const (
+    tokensLengthLimit = 32
+    order = 2
+)
 
 func main() {
     //Initilise Telegram bot
 
     //Initialise chain
-    chain := gomarkov.NewChain(2)
+    chain := gomarkov.NewChain(order)
 
     //Open source data dir
 
@@ -22,7 +25,7 @@ func main() {
     chain.Add(processString("data test data test data"))
     chain.Add(processString("test data test data test data"))
 
-    sentence := generateSentence(chain, []string{"test"})
+    sentence := generateSentence(chain, []string{"test", "test"})
     fmt.Println(sentence)
 
     //Connect to telegram
@@ -40,7 +43,12 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
     for tokens[len(tokens) - 1] != gomarkov.EndToken &&
         len(tokens) < tokensLengthLimit {
         next, _ := chain.Generate(tokens[(len(tokens) - 1):] )
-        tokens = append(tokens, next)
+       // fmt.Println(next)
+        if len(next) > 0 {
+            tokens = append(tokens, next)
+        } else {
+            tokens = append(tokens, gomarkov.EndToken)
+        }
     }
 
     return tokens
