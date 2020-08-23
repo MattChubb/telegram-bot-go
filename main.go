@@ -62,32 +62,34 @@ func main() {
 
     //Connect Markov to Telegram
     bot.Handle(telebot.OnText, func(m *telebot.Message) {
-    //Process input
+        //Process input
         rawMessage := m.Text
         parsedMessage := processString(rawMessage)
 
-    //Identify whether to respond
+        //Train on input (Ensures we always have a response for new words)
+        chain.Add(parsedMessage)
+
+        //Identify whether to respond
         respondable := true
         if !respondable {
             return
         }
 
-    //Identify subject
+        //Identify subject
         subject := []string{}
         subject = append(subject, parsedMessage[rand.Intn(len(parsedMessage))])
-        //subject := []string{"I", "think"}
 
-    //Generate response
+        //Generate response
         sentence := generateSentence(chain, subject)
         response := strings.Join(sentence, " ")
 
-    //Respond with generated response
+        //Respond with generated response
         bot.Send(m.Sender, response)
     })
 
-    fmt.Println("Starting bot...")
+    fmt.Println("Starting bot")
     bot.Start()
-    fmt.Println("Stopping bot...")
+    fmt.Println("Bot stopped")
 }
 
 func processString(rawString string) []string {
