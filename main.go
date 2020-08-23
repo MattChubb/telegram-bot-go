@@ -3,6 +3,7 @@ package main
 import (
 //    tb "gopkg.in/tucnak/telebot.v2"
     "github.com/mb-14/gomarkov"
+    "fmt"
     "strings"
 )
 
@@ -15,7 +16,11 @@ func main() {
     //Open source data dir
 
     //Train markov chain
-    chain.Add(processString("Test data test data test data"))
+    chain.Add(processString("test data test data test data"))
+    chain.Add(processString("test data test data test data"))
+    chain.Add(processString("test data test data test data"))
+    next, _ := chain.Generate([]string{"test", "data", "data"})
+    fmt.Println(next)
 
     //Connect to telegram
 }
