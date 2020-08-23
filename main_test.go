@@ -17,6 +17,7 @@ func TestProcessString(t *testing.T) {
         {"3 words", "test data one", []string{"test", "data", "one"}},
         {"0 words", "", []string{""}},
         {"alphanumeric", "test1data", []string{"test1data"}},
+        {"punctuation", "test. data,", []string{"test.", "data,"}},
     }
 
     for _, table := range tables {

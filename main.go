@@ -3,32 +3,55 @@ package main
 import (
 //    tb "gopkg.in/tucnak/telebot.v2"
     "github.com/mb-14/gomarkov"
+    "bufio"
     "fmt"
+    "log"
+    "os"
     "strings"
 )
 
 const (
     tokensLengthLimit = 32
-    order = 2
+    order = 1
 )
 
 func main() {
+    //Initialise
     //Initilise Telegram bot
 
     //Initialise chain
     chain := gomarkov.NewChain(order)
 
     //Open source data dir
+    source_file, err := os.Open("./source_data/data")
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer source_file.Close()
+    scanner := bufio.NewScanner(source_file)
 
+
+    //Train
     //Train markov chain
-    chain.Add(processString("test data test data test data"))
-    chain.Add(processString("data test data test data"))
-    chain.Add(processString("test data test data test data"))
+    for scanner.Scan() {
+        chain.Add(processString(scanner.Text()))
+    }
+    if err := scanner.Err(); err != nil {
+        log.Fatal(err)
+    }
 
-    sentence := generateSentence(chain, []string{"test", "test"})
+
+    //Connect Markov to Telegram
+    //Process input
+
+    //Identify whether to respond
+
+    //Generate response
+    sentence := generateSentence(chain, []string{"I", "think"})
+
+    //Respond with generated response
     fmt.Println(sentence)
 
-    //Connect to telegram
 }
 
 func processString(rawString string) []string {
