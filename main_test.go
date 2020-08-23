@@ -25,7 +25,7 @@ func TestProcessString(t *testing.T) {
         if ! reflect.DeepEqual(got, table.expected) {
             t.Errorf("expected: %#v, got: %#v", table.expected, got)
         } else {
-            t.Log("Passed\n")
+            t.Log("Passed")
         }
     }
 }
@@ -35,7 +35,9 @@ func TestGenerateSentence(t *testing.T) {
     /*
     Markov chains are inherently random, and so there's no real point in trying to test them deterministically.
     Instead, we can feed it various prompts and check we get _something_ out the other side
-    TODO Check that what we get out is expected, i.e. contains only the words "test and "data" in that order
+    TODO Check that what we get out is expected:
+    * Contains only the words "test" and "data" in that order
+    * Does not hit the tokensLengthLimit
     */
     tables := []struct{
         testcase string
@@ -63,7 +65,7 @@ func TestGenerateSentence(t *testing.T) {
         if len(got) < 2 {
             t.Errorf("prompt: %#v, got: %#v", table.input, got)
         } else {
-            t.Log("Passed\n")
+            t.Logf("Passed (%d tokens returned)", len(got))
         }
     }
 }
