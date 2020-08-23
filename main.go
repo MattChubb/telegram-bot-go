@@ -6,6 +6,7 @@ import (
     "bufio"
     "fmt"
     "log"
+    "math/rand"
     "os"
     "strings"
     "time"
@@ -36,6 +37,9 @@ func main() {
     //Initialise chain
     chain := gomarkov.NewChain(order)
 
+    //Misc init
+    rand.Seed(time.Now().Unix())
+
     //Open source data dir
     //TODO Read from _all_ the files in the dir, not just data
     source_file, err := os.Open("./source_data/data")
@@ -59,11 +63,22 @@ func main() {
     //Connect Markov to Telegram
     bot.Handle(telebot.OnText, func(m *telebot.Message) {
     //Process input
+        rawMessage := m.Text
+        parsedMessage := processString(rawMessage)
 
     //Identify whether to respond
+        respondable := true
+        if !respondable {
+            return
+        }
+
+    //Identify subject
+        subject := []string{}
+        subject = append(subject, parsedMessage[rand.Intn(len(parsedMessage))])
+        //subject := []string{"I", "think"}
 
     //Generate response
-        sentence := generateSentence(chain, []string{"I", "think"})
+        sentence := generateSentence(chain, subject)
         response := strings.Join(sentence, " ")
 
     //Respond with generated response
