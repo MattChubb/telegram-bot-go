@@ -19,10 +19,11 @@ const (
 func main() {
     //Initialise
     //Get Telegram bot token from env
-    bot_token := os.Getenv("TELEGRAM_BOT_KEY")
+    bot_token := os.Getenv("TELEGRAM_BOT_TOKEN")
 
     //Initilise Telegram bot
     bot, err := telebot.NewBot(telebot.Settings{
+        URL: "",
         Token: bot_token,
         Poller: &telebot.LongPoller{
             Timeout: 10 * time.Second,
@@ -57,18 +58,21 @@ func main() {
 
     //Connect Markov to Telegram
     bot.Handle(telebot.OnText, func(m *telebot.Message) {
-
     //Process input
 
     //Identify whether to respond
 
     //Generate response
-    sentence := generateSentence(chain, []string{"I", "think"})
+        sentence := generateSentence(chain, []string{"I", "think"})
+        response := strings.Join(sentence, " ")
 
     //Respond with generated response
-    fmt.Println(sentence)
+        bot.Send(m.Sender, response)
     })
 
+    fmt.Println("Starting bot...")
+    bot.Start()
+    fmt.Println("Stopping bot...")
 }
 
 func processString(rawString string) []string {
