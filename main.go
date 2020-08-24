@@ -5,6 +5,7 @@ import (
     "github.com/mb-14/gomarkov"
     "bufio"
     "fmt"
+    "io/ioutil"
     "log"
     "math/rand"
     "os"
@@ -15,6 +16,7 @@ import (
 const (
     tokensLengthLimit = 32
     order = 1
+    sourceDir = "./source_data"
 )
 
 func main() {
@@ -40,25 +42,22 @@ func main() {
     //Misc init
     rand.Seed(time.Now().Unix())
 
-    //Open source data dir
-    //TODO Read from _all_ the files in the dir, not just data
-    source_file, err := os.Open("./source_data/data")
+    //Train
+    source_files, err := ioutil.ReadDir(sourceDir)
     if err != nil {
         log.Fatal(err)
     }
-    defer source_file.Close()
-    scanner := bufio.NewScanner(source_file)
 
-
-    //Train
-    //Train markov chain
-    for scanner.Scan() {
-        chain.Add(processString(scanner.Text()))
+    for _, fileInfo := range source_files {
+        if fileInfo.Name()[1] == '.' {
+            continue
+        }
+        sourceFile, err := os.Open(sourceDir + "/" + fileInfo.Name())
+        if err != nil {
+            log.Fatal(err)
+        }
+        trainFromFile(chain, sourceFile)
     }
-    if err := scanner.Err(); err != nil {
-        log.Fatal(err)
-    }
-
 
     //Connect Markov to Telegram
     bot.Handle(telebot.OnText, func(m *telebot.Message) {
@@ -113,4 +112,14 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
     }
 
     return tokens
+}
+
+func trainFromFile(chain *gomarkov.Chain, file *os.File) {
+    scanner := bufio.NewScanner(file)
+    for scanner.Scan() {
+        chain.Add(processString(scanner.Text()))
+    }
+    if err := scanner.Err(); err != nil {
+        log.Fatal(err)
+    }
 }
