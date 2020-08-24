@@ -68,18 +68,9 @@ func main() {
 		//Train on input (Ensures we always have a response for new words)
 		chain.Add(parsedMessage)
 
-		//TODO Only speak when spoken to
-		respondable := true
-		if !respondable {
-			return
-		}
-
-		//Generate response
-		subject := append([]string{}, parsedMessage[rand.Intn(len(parsedMessage))])
-		sentence := generateSentence(chain, subject)
-		response := strings.Join(sentence, " ")
-
 		//Respond with generated response
+		//TODO Only speak when spoken to
+        response := generateResponse(chain, parsedMessage)
 		bot.Send(m.Sender, response)
 	})
 
@@ -93,23 +84,6 @@ func processString(rawString string) []string {
 	return strings.Split(rawString, " ")
 }
 
-func generateSentence(chain *gomarkov.Chain, init []string) []string {
-	tokens := []string{gomarkov.StartToken}
-	tokens = append(tokens, init...)
-
-	for tokens[len(tokens)-1] != gomarkov.EndToken &&
-		len(tokens) < tokensLengthLimit {
-		next, _ := chain.Generate(tokens[(len(tokens) - 1):])
-		// fmt.Println(next)
-		if len(next) > 0 {
-			tokens = append(tokens, next)
-		} else {
-			tokens = append(tokens, gomarkov.EndToken)
-		}
-	}
-
-	return tokens
-}
 
 func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 	scanner := bufio.NewScanner(file)
@@ -119,4 +93,33 @@ func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func generateResponse(chain *gomarkov.Chain, message []string) string {
+		subject := append([]string{}, message[rand.Intn(len(message))])
+		sentence := generateSentence(chain, subject)
+		return strings.Join(sentence, " ")
+}
+
+func generateSentence(chain *gomarkov.Chain, init []string) []string {
+// This function has been separated from response generation to allow omnidirectional generation later
+//	tokens := []string{gomarkov.StartToken}
+//	tokens = append(tokens, init...)
+    tokens := init
+    if len(tokens) == 0 {
+        tokens = []string{""}
+    }
+
+	for tokens[len(tokens)-1] != gomarkov.EndToken &&
+		len(tokens) < tokensLengthLimit {
+		next, _ := chain.Generate(tokens[(len(tokens) - 1):])
+		if len(next) > 0 {
+			tokens = append(tokens, next)
+		} else {
+			tokens = append(tokens, gomarkov.EndToken)
+		}
+	}
+
+    //Don't include the end token in our response
+    return tokens[:len(tokens)-1]
 }

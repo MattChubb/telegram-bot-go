@@ -62,7 +62,7 @@ func TestGenerateSentence(t *testing.T) {
 		t.Logf("Testing: %s", table.testcase)
 		got := generateSentence(chain, table.input)
 
-		if len(got) < 2 {
+		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
 		} else {
 			//t.Logf("Got: %#v", got)
