@@ -68,9 +68,42 @@ func TestGenerateSentence(t *testing.T) {
 			t.Errorf("Start token found, got: %#v", got)
 		} else if got[len(got)-1] == gomarkov.EndToken {
 			t.Errorf("End token found, got: %#v", got)
-        } else {
+		} else {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d tokens returned)", len(got))
+		}
+	}
+}
+
+func TestGenerateResponse(t *testing.T) {
+	tables := []struct {
+		testcase string
+		input    []string
+	}{
+		{"Null", []string{}},
+		{"Empty string", []string{""}},
+		{"1 word", []string{"test"}},
+		{"1 word 2", []string{"data"}},
+		{"2 words", []string{"test", "data"}},
+		{"3 words", []string{"test", "data", "test"}},
+		{"Unknown word", []string{"testing"}},
+	}
+
+	chain := gomarkov.NewChain(1)
+
+	chain.Add(processString("test data test data test data"))
+	chain.Add(processString("data test data test data"))
+	chain.Add(processString("test data test data test data"))
+
+	for _, table := range tables {
+		t.Logf("Testing: %s", table.testcase)
+		got := generateResponse(chain, table.input)
+
+		if len(got) < 1 {
+			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+		} else {
+			//t.Logf("Got: %#v", got)
+			t.Logf("Passed (%d characters returned)", len(got))
 		}
 	}
 }

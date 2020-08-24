@@ -70,7 +70,7 @@ func main() {
 
 		//Respond with generated response
 		//TODO Only speak when spoken to
-        response := generateResponse(chain, parsedMessage)
+		response := generateResponse(chain, parsedMessage)
 		bot.Send(m.Sender, response)
 	})
 
@@ -84,7 +84,6 @@ func processString(rawString string) []string {
 	return strings.Split(rawString, " ")
 }
 
-
 func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -96,23 +95,35 @@ func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 }
 
 func generateResponse(chain *gomarkov.Chain, message []string) string {
-		subject := append([]string{}, message[rand.Intn(len(message))])
-		sentence := generateSentence(chain, subject)
-		return strings.Join(sentence, " ")
+	subject := []string{}
+	if len(message) > 0 {
+		subject = append([]string{}, message[rand.Intn(len(message))])
+	}
+	sentence := generateSentence(chain, subject)
+	return strings.Join(sentence, " ")
 }
 
 func generateSentence(chain *gomarkov.Chain, init []string) []string {
-// This function has been separated from response generation to allow omnidirectional generation later
-//	tokens := []string{gomarkov.StartToken}
-//	tokens = append(tokens, init...)
-    tokens := init
-    if len(tokens) == 0 {
-        tokens = []string{""}
+	// This function has been separated from response generation to allow omnidirectional generation later
+	tokens := []string{}
+	if len(init) < chain.Order {
+        for i:=0; i < chain.Order; i++ {
+            tokens = append(tokens, gomarkov.StartToken)
+        }
+        tokens = append(tokens, init...)
+	} else if len(init) > chain.Order {
+        tokens = init[:chain.Order -1]
+    } else {
+        tokens = init
     }
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
 		len(tokens) < tokensLengthLimit {
-		next, _ := chain.Generate(tokens[(len(tokens) - 1):])
+		next, err := chain.Generate(tokens[(len(tokens) - 1):])
+        if err != nil {
+            log.Fatal(err)
+        }
+
 		if len(next) > 0 {
 			tokens = append(tokens, next)
 		} else {
@@ -120,6 +131,6 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
 		}
 	}
 
-    //Don't include the end token in our response
-    return tokens[:len(tokens)-1]
+	//Don't include the end token in our response
+	return tokens[:len(tokens)-1]
 }
