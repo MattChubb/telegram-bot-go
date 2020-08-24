@@ -131,6 +131,10 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
 		}
 	}
 
-	//Don't include the end token in our response
-	return tokens[:len(tokens)-1]
+	//Don't include the start or end token in our response
+	tokens = tokens[:len(tokens)-1]
+    if tokens[0] == gomarkov.StartToken {
+        tokens = tokens[1:]
+    }
+    return tokens
 }
