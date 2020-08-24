@@ -64,7 +64,11 @@ func TestGenerateSentence(t *testing.T) {
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
-		} else {
+		} else if got[0] == gomarkov.StartToken {
+			t.Errorf("Start token found, got: %#v", got)
+		} else if got[len(got)-1] == gomarkov.EndToken {
+			t.Errorf("End token found, got: %#v", got)
+        } else {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d tokens returned)", len(got))
 		}
