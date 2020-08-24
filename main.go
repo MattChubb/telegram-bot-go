@@ -112,7 +112,7 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
         }
         tokens = append(tokens, init...)
 	} else if len(init) > chain.Order {
-        tokens = init[:chain.Order -1]
+        tokens = init[:chain.Order]
     } else {
         tokens = init
     }
