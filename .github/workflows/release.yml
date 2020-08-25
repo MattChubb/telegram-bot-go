@@ -11,6 +11,7 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@master
       env:
+        PROJECT_NAME: "telegram-bot"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GOARCH: "386"
         GOOS: linux
@@ -23,6 +24,7 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@master
       env:
+        PROJECT_NAME: "telegram-bot"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GOARCH: amd64
         GOOS: linux
