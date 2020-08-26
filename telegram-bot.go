@@ -14,6 +14,7 @@ import (
 )
 
 const (
+	//TODO Turn these into command line params
 	tokensLengthLimit = 32
 	order             = 1
 	sourceDir         = "./source_data"
@@ -40,9 +41,13 @@ func main() {
 	//Initialise chain
 	fmt.Println("Initialising chain...")
 	chain := gomarkov.NewChain(order)
+	//TODO Allow loading a saved chain instead of training a new one
 
 	//Train
+	//TODO Allow running in training-only mode for training models
+	//TODO Allow skipping of training step (helpful if we plan to load a saved chain)
 	fmt.Println("Opening source data...")
+	//TODO Allow specifying a list of files via command line
 	source_files, err := ioutil.ReadDir(sourceDir)
 	if err != nil {
 		log.Fatal(err)
@@ -59,8 +64,10 @@ func main() {
 		}
 		trainFromFile(chain, sourceFile)
 	}
+	//TODO Save chain to json file
 
 	//Connect Markov to Telegram
+	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
 	fmt.Println("Adding chain to bot...")
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
 		parsedMessage := processString(m.Text)
@@ -70,6 +77,7 @@ func main() {
 
 		//Respond with generated response
 		//TODO Only speak when spoken to
+		//TODO Occasionally reply even if not spoken to directly
 		response := generateResponse(chain, parsedMessage)
 		bot.Send(m.Sender, response)
 	})
@@ -81,6 +89,7 @@ func main() {
 
 func processString(rawString string) []string {
 	//TODO Handle punctuation other than spaces
+	//TODO Lowercase everything to reduce the token space
 	return strings.Split(rawString, " ")
 }
 
@@ -97,14 +106,17 @@ func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 func generateResponse(chain *gomarkov.Chain, message []string) string {
 	subject := []string{}
 	if len(message) > 0 {
+		//TODO Do something cleverer with subject extraction
 		subject = append([]string{}, message[rand.Intn(len(message))])
 	}
+	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
+	//TODO Any other clever Markov hacks?
 	sentence := generateSentence(chain, subject)
 	return strings.Join(sentence, " ")
 }
 
 func generateSentence(chain *gomarkov.Chain, init []string) []string {
-	// This function has been separated from response generation to allow omnidirectional generation later
+	// This function has been separated from response generation to allow bidirectional generation later
 	tokens := []string{}
 	if len(init) < chain.Order {
         for i:=0; i < chain.Order; i++ {
@@ -120,9 +132,9 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
 		len(tokens) < tokensLengthLimit {
 		next, err := chain.Generate(tokens[(len(tokens) - 1):])
-        if err != nil {
-            log.Fatal(err)
-        }
+	if err != nil {
+	    log.Fatal(err)
+	}
 
 		if len(next) > 0 {
 			tokens = append(tokens, next)
