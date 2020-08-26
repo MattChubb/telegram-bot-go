@@ -15,6 +15,7 @@ import (
 
 const (
 	//TODO Turn these into command line params
+    chattiness        = 0.5
 	tokensLengthLimit = 32
 	order             = 1
 	sourceDir         = "./source_data"
@@ -76,10 +77,21 @@ func main() {
 		chain.Add(parsedMessage)
 
 		//Respond with generated response
-		//TODO Only speak when spoken to
-		//TODO Occasionally reply even if not spoken to directly
-		response := generateResponse(chain, parsedMessage)
-		bot.Send(m.Sender, response)
+        respond := rand.Float32() < chattiness
+        if !respond && m.Chat.Type == telebot.ChatPrivate {
+            respond = true
+        } else {
+            for _, entity := range m.Entities {
+                if entity.Type == telebot.EntityTMention && entity.User.ID == bot.Me.ID {
+                    respond = true
+                }
+            }
+        }
+
+        if respond {
+		    response := generateResponse(chain, parsedMessage)
+		    bot.Send(m.Sender, response)
+        }
 	})
 
 	fmt.Println("Starting bot...")
