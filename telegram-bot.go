@@ -90,7 +90,7 @@ func main() {
 
         if respond {
 		    response := generateResponse(chain, parsedMessage)
-		    bot.Send(m.Sender, response)
+		    bot.Send(m.Chat, response)
         }
 	})
 
