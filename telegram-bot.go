@@ -20,7 +20,7 @@ const (
 	tokensLengthLimit = 32
 	order             = 1
 	sourceDir         = "./source_data"
-    chainFile         = "./chainFile.json"
+    chainFilePath     = "./chainFile.json"
 )
 
 func main() {
@@ -44,37 +44,48 @@ func main() {
 	//Initialise chain
 	fmt.Println("Initialising chain...")
 	chain := gomarkov.NewChain(order)
-	//TODO Allow loading a saved chain instead of training a new one
+    if len(chainFilePath) > 0 {
+        chainFile, err := ioutil.ReadFile(chainFilePath)
+        if err != nil {
+            log.Fatal(err)
+        }
+        chain.UnmarshalJSON(chainFile)
+    }
+
 
 	//Train
 	//TODO Allow running in training-only mode for training models
-	//TODO Allow skipping of training step (helpful if we plan to load a saved chain)
-	fmt.Println("Opening source data...")
 	//TODO Allow specifying a list of files via command line
-	source_files, err := ioutil.ReadDir(sourceDir)
-	if err != nil {
-		log.Fatal(err)
-	}
+    if len(sourceDir) > 0 {
+        fmt.Println("Opening source data...")
+        source_files, err := ioutil.ReadDir(sourceDir)
+        if err != nil {
+            log.Fatal(err)
+        }
 
-	fmt.Println("Training chain on source data...")
-	for _, fileInfo := range source_files {
-		if fileInfo.Name()[1] == '.' {
-			continue
-		}
-		sourceFile, err := os.Open(sourceDir + "/" + fileInfo.Name())
-		if err != nil {
-			log.Fatal(err)
-		}
-		trainFromFile(chain, sourceFile)
-	}
+        fmt.Println("Training chain on source data...")
+        for _, fileInfo := range source_files {
+            if fileInfo.Name()[1] == '.' {
+                continue
+            }
+            sourceFile, err := os.Open(sourceDir + "/" + fileInfo.Name())
+            if err != nil {
+                log.Fatal(err)
+            }
+            trainFromFile(chain, sourceFile)
+        }
 
-    chainJSON, err := json.Marshal(chain)
-    if err != nil {
-        log.Fatal(err)
-    }
-    err = ioutil.WriteFile(chainFile, chainJSON, 0644)
-    if err != nil {
-        log.Fatal(err)
+        if len(chainFilePath) > 0 {
+            fmt.Println("Saving chain...")
+            chainJSON, err := json.Marshal(chain)
+            if err != nil {
+                log.Fatal(err)
+            }
+            err = ioutil.WriteFile(chainFilePath, chainJSON, 0644)
+            if err != nil {
+                log.Fatal(err)
+            }
+        }
     }
 
 	//Connect Markov to Telegram
