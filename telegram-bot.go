@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+    "encoding/json"
 	"fmt"
 	"github.com/mb-14/gomarkov"
 	"github.com/tucnak/telebot"
@@ -19,6 +20,7 @@ const (
 	tokensLengthLimit = 32
 	order             = 1
 	sourceDir         = "./source_data"
+    chainFile         = "./chainFile.json"
 )
 
 func main() {
@@ -65,7 +67,15 @@ func main() {
 		}
 		trainFromFile(chain, sourceFile)
 	}
-	//TODO Save chain to json file
+
+    chainJSON, err := json.Marshal(chain)
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = ioutil.WriteFile(chainFile, chainJSON, 0644)
+    if err != nil {
+        log.Fatal(err)
+    }
 
 	//Connect Markov to Telegram
 	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
