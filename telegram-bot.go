@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
     "encoding/json"
+    "flag"
 	"fmt"
 	"github.com/mb-14/gomarkov"
 	"github.com/tucnak/telebot"
@@ -19,11 +20,14 @@ const (
     chattiness        = 0.5
 	tokensLengthLimit = 32
 	order             = 1
-	sourceDir         = "./source_data"
-    chainFilePath     = "./chainFile.json"
 )
 
 func main() {
+    //Read params from command line
+    sourceDir := flag.String("sourcedir", "", "Source directory for training data")
+    chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
+    flag.Parse()
+
 	//Initialise
 	rand.Seed(time.Now().Unix())
 
@@ -44,8 +48,9 @@ func main() {
 	//Initialise chain
 	fmt.Println("Initialising chain...")
 	chain := gomarkov.NewChain(order)
-    if len(chainFilePath) > 0 {
-        chainFile, err := ioutil.ReadFile(chainFilePath)
+    if len(*chainFilePath) > 0 {
+        fmt.Println("Loading chain from: ", *chainFilePath)
+        chainFile, err := ioutil.ReadFile(*chainFilePath)
         if err != nil {
             log.Fatal(err)
         }
@@ -55,10 +60,10 @@ func main() {
 
 	//Train
 	//TODO Allow running in training-only mode for training models
-	//TODO Allow specifying a list of files via command line
-    if len(sourceDir) > 0 {
+	//TODO Allow specifying a list of files instead of a directory
+    if len(*sourceDir) > 0 {
         fmt.Println("Opening source data...")
-        source_files, err := ioutil.ReadDir(sourceDir)
+        source_files, err := ioutil.ReadDir(*sourceDir)
         if err != nil {
             log.Fatal(err)
         }
@@ -68,20 +73,20 @@ func main() {
             if fileInfo.Name()[1] == '.' {
                 continue
             }
-            sourceFile, err := os.Open(sourceDir + "/" + fileInfo.Name())
+            sourceFile, err := os.Open(*sourceDir + "/" + fileInfo.Name())
             if err != nil {
                 log.Fatal(err)
             }
             trainFromFile(chain, sourceFile)
         }
 
-        if len(chainFilePath) > 0 {
+        if len(*chainFilePath) > 0 {
             fmt.Println("Saving chain...")
             chainJSON, err := json.Marshal(chain)
             if err != nil {
                 log.Fatal(err)
             }
-            err = ioutil.WriteFile(chainFilePath, chainJSON, 0644)
+            err = ioutil.WriteFile(*chainFilePath, chainJSON, 0644)
             if err != nil {
                 log.Fatal(err)
             }
