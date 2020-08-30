@@ -44,13 +44,13 @@ func TestGenerateSentence(t *testing.T) {
 		input    []string
 	}{
 		{"Null", []string{}},
-        //TODO Trim empty strings from input
+		//TODO Trim empty strings from input
 		//{"Empty string", []string{""}},
 		{"1 word", []string{"test"}},
 		{"1 word 2", []string{"data"}},
 		{"2 words", []string{"test", "data"}},
 		{"3 words", []string{"test", "data", "test"}},
-        //TODO We expect unknown words to fail
+		//TODO We expect unknown words to fail
 		//{"Unknown word", []string{"testing"}},
 	}
 
@@ -83,13 +83,13 @@ func TestGenerateResponse(t *testing.T) {
 		input    []string
 	}{
 		{"Null", []string{}},
-        //TODO Trim empty strings from input
+		//TODO Trim empty strings from input
 		//{"Empty string", []string{""}},
 		{"1 word", []string{"test"}},
 		{"1 word 2", []string{"data"}},
 		{"2 words", []string{"test", "data"}},
 		{"3 words", []string{"test", "data", "test"}},
-        //TODO We expect unknown words to fail
+		//TODO We expect unknown words to fail
 		//{"Unknown word", []string{"testing"}},
 	}
 

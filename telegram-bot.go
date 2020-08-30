@@ -2,8 +2,8 @@ package main
 
 import (
 	"bufio"
-    "encoding/json"
-    "flag"
+	"encoding/json"
+	"flag"
 	"fmt"
 	"github.com/mb-14/gomarkov"
 	"github.com/tucnak/telebot"
@@ -16,15 +16,15 @@ import (
 )
 
 func main() {
-    //Read params from command line
-    sourceDir := flag.String("sourcedir", "", "Source directory for training data")
-    chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
-    debug := flag.Bool("debug", false, "Debug logging")
-    chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
-    saveEvery := flag.Int("saveevery", 100, "Save every N messages")
-    tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
-    order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
-    flag.Parse()
+	//Read params from command line
+	chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
+	chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
+	debug := flag.Bool("debug", false, "Debug logging")
+	order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
+	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
+	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
+	tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
+	flag.Parse()
 
 	//Initialise
 	rand.Seed(time.Now().Unix())
@@ -46,110 +46,109 @@ func main() {
 	//Initialise chain
 	fmt.Println("Initialising chain...")
 	chain := gomarkov.NewChain(*order)
-    if len(*chainFilePath) > 0 {
-        fmt.Println("Loading chain from: ", *chainFilePath)
-        chainFile, err := ioutil.ReadFile(*chainFilePath)
-        if err != nil {
-            log.Fatal(err)
-        }
-        chain.UnmarshalJSON(chainFile)
-    }
-
+	if len(*chainFilePath) > 0 {
+		fmt.Println("Loading chain from: ", *chainFilePath)
+		chainFile, err := ioutil.ReadFile(*chainFilePath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		chain.UnmarshalJSON(chainFile)
+	}
 
 	//Train
 	//TODO Allow running in training-only mode for training models
 	//TODO Allow specifying a list of files instead of a directory
-    if len(*sourceDir) > 0 {
-        fmt.Println("Opening source data...")
-        source_files, err := ioutil.ReadDir(*sourceDir)
-        if err != nil {
-            log.Fatal(err)
-        }
+	if len(*sourceDir) > 0 {
+		fmt.Println("Opening source data...")
+		source_files, err := ioutil.ReadDir(*sourceDir)
+		if err != nil {
+			log.Fatal(err)
+		}
 
-        fmt.Println("Training chain on source data...")
-        for _, fileInfo := range source_files {
-            if fileInfo.Name()[1] == '.' {
-                continue
-            }
-            sourceFile, err := os.Open(*sourceDir + "/" + fileInfo.Name())
-            if err != nil {
-                log.Fatal(err)
-            }
-            trainFromFile(chain, sourceFile)
-        }
+		fmt.Println("Training chain on source data...")
+		for _, fileInfo := range source_files {
+			if fileInfo.Name()[1] == '.' {
+				continue
+			}
+			sourceFile, err := os.Open(*sourceDir + "/" + fileInfo.Name())
+			if err != nil {
+				log.Fatal(err)
+			}
+			trainFromFile(chain, sourceFile)
+		}
 
-        if len(*chainFilePath) > 0 {
-            saveChain(chain, *chainFilePath)
-        }
-    }
+		if len(*chainFilePath) > 0 {
+			saveChain(chain, *chainFilePath)
+		}
+	}
 
 	//Connect Markov to Telegram
 	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
 	fmt.Println("Adding chain to bot...")
-    mNumber := 0
+	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
-        if *debug {
-            fmt.Println("Received message: ", m.Text)
-        }
+		if *debug {
+			fmt.Println("Received message: ", m.Text)
+		}
 		parsedMessage := processString(m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
 		chain.Add(parsedMessage)
 
 		//Respond with generated response
-        respond := rand.Float64() < *chattiness
-        if !respond && m.Chat.Type == telebot.ChatPrivate {
-            if *debug {
-                fmt.Println("Respond: TRUE, private chat")
-            }
-            respond = true
-        } else if !respond {
-            if *debug {
-                fmt.Println("Respond: Not feeling chatty, checking for direct mention")
-            }
-            for _, entity := range m.Entities {
-                if *debug {
-                    fmt.Println("Respond: Found entity ", entity)
-                }
-                if entity.Type == telebot.EntityMention {
-                    mention := m.Text[entity.Offset:entity.Offset+entity.Length]
-                    if *debug {
-                        fmt.Println("Respond: Entity is ", mention)
-                    }
-                    if mention == "@" + bot.Me.Username {
-                        respond = true
-                        if *debug {
-                            fmt.Println("Respond: TRUE, @mentioned directly")
-                        }
-                    }
-                }
-            }
-        } else if *debug && respond {
-            fmt.Println("Respond: TRUE, feeling chatty")
-        } else if *debug && !respond {
-            fmt.Println("Respond: FALSE, not feeling chatty")
-        }
+		respond := rand.Float64() < *chattiness
+		if !respond && m.Chat.Type == telebot.ChatPrivate {
+			if *debug {
+				fmt.Println("Respond: TRUE, private chat")
+			}
+			respond = true
+		} else if !respond {
+			if *debug {
+				fmt.Println("Respond: Not feeling chatty, checking for direct mention")
+			}
+			for _, entity := range m.Entities {
+				if *debug {
+					fmt.Println("Respond: Found entity ", entity)
+				}
+				if entity.Type == telebot.EntityMention {
+					mention := m.Text[entity.Offset : entity.Offset+entity.Length]
+					if *debug {
+						fmt.Println("Respond: Entity is ", mention)
+					}
+					if mention == "@"+bot.Me.Username {
+						respond = true
+						if *debug {
+							fmt.Println("Respond: TRUE, @mentioned directly")
+						}
+					}
+				}
+			}
+		} else if *debug && respond {
+			fmt.Println("Respond: TRUE, feeling chatty")
+		} else if *debug && !respond {
+			fmt.Println("Respond: FALSE, not feeling chatty")
+		}
 
-        if respond {
-            if *debug {
-                fmt.Println("Responding...")
-            }
-		    response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
-            if *debug {
-                fmt.Println("Sending response: ", response)
-            }
-		    bot.Send(m.Chat, response)
-        } else {
-            if *debug {
-                fmt.Println("Not responding")
-            }
-        }
+		if respond {
+			if *debug {
+				fmt.Println("Responding...")
+			}
+			response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
+			if *debug {
+				fmt.Println("Sending response: ", response)
+			}
+			bot.Send(m.Chat, response)
+		} else {
+			if *debug {
+				fmt.Println("Not responding")
+			}
+		}
 
-        mNumber++
-        if mNumber > *saveEvery && len(*chainFilePath) > 0 {
-            mNumber = 0
-            saveChain(chain, *chainFilePath)
-        }
+		mNumber++
+		if mNumber > *saveEvery && len(*chainFilePath) > 0 {
+			mNumber = 0
+			saveChain(chain, *chainFilePath)
+		}
 	})
 
 	fmt.Println("Starting bot...")
@@ -158,15 +157,15 @@ func main() {
 }
 
 func saveChain(chain *gomarkov.Chain, file string) {
-    fmt.Println("Saving chain...")
-    chainJSON, err := json.Marshal(chain)
-    if err != nil {
-        log.Fatal(err)
-    }
-    err = ioutil.WriteFile(file, chainJSON, 0644)
-    if err != nil {
-        log.Fatal(err)
-    }
+	fmt.Println("Saving chain...")
+	chainJSON, err := json.Marshal(chain)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = ioutil.WriteFile(file, chainJSON, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func processString(rawString string) []string {
@@ -201,22 +200,22 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 	// This function has been separated from response generation to allow bidirectional generation later
 	tokens := []string{}
 	if len(init) < chain.Order {
-        for i:=0; i < chain.Order; i++ {
-            tokens = append(tokens, gomarkov.StartToken)
-        }
-        tokens = append(tokens, init...)
+		for i := 0; i < chain.Order; i++ {
+			tokens = append(tokens, gomarkov.StartToken)
+		}
+		tokens = append(tokens, init...)
 	} else if len(init) > chain.Order {
-        tokens = init[:chain.Order]
-    } else {
-        tokens = init
-    }
+		tokens = init[:chain.Order]
+	} else {
+		tokens = init
+	}
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
 		len(tokens) < lengthLimit {
 		next, err := chain.Generate(tokens[(len(tokens) - 1):])
-        if err != nil {
-            log.Fatal(err)
-        }
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		if len(next) > 0 {
 			tokens = append(tokens, next)
@@ -227,8 +226,8 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 
 	//Don't include the start or end token in our response
 	tokens = tokens[:len(tokens)-1]
-    if tokens[0] == gomarkov.StartToken {
-        tokens = tokens[1:]
-    }
-    return tokens
+	if tokens[0] == gomarkov.StartToken {
+		tokens = tokens[1:]
+	}
+	return tokens
 }
