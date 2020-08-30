@@ -15,12 +15,6 @@ import (
 	"time"
 )
 
-const (
-	//TODO Turn these into command line params
-	tokensLengthLimit = 32
-	order             = 1
-)
-
 func main() {
     //Read params from command line
     sourceDir := flag.String("sourcedir", "", "Source directory for training data")
@@ -28,6 +22,8 @@ func main() {
     debug := flag.Bool("debug", false, "Debug logging")
     chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
     saveEvery := flag.Int("saveevery", 100, "Save every N messages")
+    tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
+    order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
     flag.Parse()
 
 	//Initialise
@@ -49,7 +45,7 @@ func main() {
 
 	//Initialise chain
 	fmt.Println("Initialising chain...")
-	chain := gomarkov.NewChain(order)
+	chain := gomarkov.NewChain(*order)
     if len(*chainFilePath) > 0 {
         fmt.Println("Loading chain from: ", *chainFilePath)
         chainFile, err := ioutil.ReadFile(*chainFilePath)
@@ -138,7 +134,7 @@ func main() {
             if *debug {
                 fmt.Println("Responding...")
             }
-		    response := generateResponse(chain, parsedMessage)
+		    response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
             if *debug {
                 fmt.Println("Sending response: ", response)
             }
@@ -189,7 +185,7 @@ func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 	}
 }
 
-func generateResponse(chain *gomarkov.Chain, message []string) string {
+func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) string {
 	subject := []string{}
 	if len(message) > 0 {
 		//TODO Do something cleverer with subject extraction
@@ -197,11 +193,11 @@ func generateResponse(chain *gomarkov.Chain, message []string) string {
 	}
 	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
 	//TODO Any other clever Markov hacks?
-	sentence := generateSentence(chain, subject)
+	sentence := generateSentence(chain, subject, lengthLimit)
 	return strings.Join(sentence, " ")
 }
 
-func generateSentence(chain *gomarkov.Chain, init []string) []string {
+func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []string {
 	// This function has been separated from response generation to allow bidirectional generation later
 	tokens := []string{}
 	if len(init) < chain.Order {
@@ -216,11 +212,11 @@ func generateSentence(chain *gomarkov.Chain, init []string) []string {
     }
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
-		len(tokens) < tokensLengthLimit {
+		len(tokens) < lengthLimit {
 		next, err := chain.Generate(tokens[(len(tokens) - 1):])
-	if err != nil {
-	    log.Fatal(err)
-	}
+        if err != nil {
+            log.Fatal(err)
+        }
 
 		if len(next) > 0 {
 			tokens = append(tokens, next)

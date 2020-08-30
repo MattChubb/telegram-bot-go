@@ -62,7 +62,7 @@ func TestGenerateSentence(t *testing.T) {
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-		got := generateSentence(chain, table.input)
+		got := generateSentence(chain, table.input, 32)
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
@@ -101,7 +101,7 @@ func TestGenerateResponse(t *testing.T) {
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-		got := generateResponse(chain, table.input)
+		got := generateResponse(chain, table.input, 32)
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
