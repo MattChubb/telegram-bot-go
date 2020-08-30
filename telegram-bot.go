@@ -17,7 +17,6 @@ import (
 
 const (
 	//TODO Turn these into command line params
-    chattiness        = 0.5
 	tokensLengthLimit = 32
 	order             = 1
 )
@@ -27,6 +26,7 @@ func main() {
     sourceDir := flag.String("sourcedir", "", "Source directory for training data")
     chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
     debug := flag.Bool("debug", false, "Debug logging")
+    chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
     flag.Parse()
 
 	//Initialise
@@ -107,7 +107,7 @@ func main() {
 		chain.Add(parsedMessage)
 
 		//Respond with generated response
-        respond := rand.Float32() < chattiness
+        respond := rand.Float64() < *chattiness
         if !respond && m.Chat.Type == telebot.ChatPrivate {
             if *debug {
                 fmt.Println("Respond: TRUE, private chat")
