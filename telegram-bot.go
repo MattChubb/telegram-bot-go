@@ -119,12 +119,18 @@ func main() {
             }
             for _, entity := range m.Entities {
                 if *debug {
-                    fmt.Println("Respond: Found entity ", entity.Type)
+                    fmt.Println("Respond: Found entity ", entity)
                 }
-                if entity.Type == telebot.EntityMention && entity.User.ID == bot.Me.ID {
-                    respond = true
+                if entity.Type == telebot.EntityMention {
+                    mention := m.Text[entity.Offset:entity.Offset+entity.Length]
                     if *debug {
-                        fmt.Println("Respond: TRUE, @mentioned directly")
+                        fmt.Println("Respond: Entity is ", mention)
+                    }
+                    if mention == "@" + bot.Me.Username {
+                        respond = true
+                        if *debug {
+                            fmt.Println("Respond: TRUE, @mentioned directly")
+                        }
                     }
                 }
             }
