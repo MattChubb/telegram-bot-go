@@ -26,6 +26,7 @@ func main() {
     //Read params from command line
     sourceDir := flag.String("sourcedir", "", "Source directory for training data")
     chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
+    debug := flag.Bool("debug", false, "Debug logging")
     flag.Parse()
 
 	//Initialise
@@ -97,6 +98,9 @@ func main() {
 	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
 	fmt.Println("Adding chain to bot...")
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
+        if *debug {
+            fmt.Println("Received message: ", m.Text)
+        }
 		parsedMessage := processString(m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
@@ -105,18 +109,44 @@ func main() {
 		//Respond with generated response
         respond := rand.Float32() < chattiness
         if !respond && m.Chat.Type == telebot.ChatPrivate {
+            if *debug {
+                fmt.Println("Respond: TRUE, private chat")
+            }
             respond = true
-        } else {
+        } else if !respond {
+            if *debug {
+                fmt.Println("Respond: Not feeling chatty, checking for direct mention")
+            }
             for _, entity := range m.Entities {
-                if entity.Type == telebot.EntityTMention && entity.User.ID == bot.Me.ID {
+                if *debug {
+                    fmt.Println("Respond: Found entity ", entity.Type)
+                }
+                if entity.Type == telebot.EntityMention && entity.User.ID == bot.Me.ID {
                     respond = true
+                    if *debug {
+                        fmt.Println("Respond: TRUE, @mentioned directly")
+                    }
                 }
             }
+        } else if *debug && respond {
+            fmt.Println("Respond: TRUE, feeling chatty")
+        } else if *debug && !respond {
+            fmt.Println("Respond: FALSE, not feeling chatty")
         }
 
         if respond {
+            if *debug {
+                fmt.Println("Responding...")
+            }
 		    response := generateResponse(chain, parsedMessage)
+            if *debug {
+                fmt.Println("Sending response: ", response)
+            }
 		    bot.Send(m.Chat, response)
+        } else {
+            if *debug {
+                fmt.Println("Not responding")
+            }
         }
 	})
 
