@@ -27,6 +27,7 @@ func main() {
     chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
     debug := flag.Bool("debug", false, "Debug logging")
     chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
+    saveEvery := flag.Int("saveevery", 100, "Save every N messages")
     flag.Parse()
 
 	//Initialise
@@ -82,21 +83,14 @@ func main() {
         }
 
         if len(*chainFilePath) > 0 {
-            fmt.Println("Saving chain...")
-            chainJSON, err := json.Marshal(chain)
-            if err != nil {
-                log.Fatal(err)
-            }
-            err = ioutil.WriteFile(*chainFilePath, chainJSON, 0644)
-            if err != nil {
-                log.Fatal(err)
-            }
+            saveChain(chain, *chainFilePath)
         }
     }
 
 	//Connect Markov to Telegram
 	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
 	fmt.Println("Adding chain to bot...")
+    mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
         if *debug {
             fmt.Println("Received message: ", m.Text)
@@ -154,11 +148,29 @@ func main() {
                 fmt.Println("Not responding")
             }
         }
+
+        mNumber++
+        if mNumber > *saveEvery && len(*chainFilePath) > 0 {
+            mNumber = 0
+            saveChain(chain, *chainFilePath)
+        }
 	})
 
 	fmt.Println("Starting bot...")
 	bot.Start()
 	fmt.Println("Bot stopped")
+}
+
+func saveChain(chain *gomarkov.Chain, file string) {
+    fmt.Println("Saving chain...")
+    chainJSON, err := json.Marshal(chain)
+    if err != nil {
+        log.Fatal(err)
+    }
+    err = ioutil.WriteFile(file, chainJSON, 0644)
+    if err != nil {
+        log.Fatal(err)
+    }
 }
 
 func processString(rawString string) []string {
