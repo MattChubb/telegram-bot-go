@@ -96,29 +96,7 @@ func main() {
 		chain.Add(parsedMessage)
 
 		//Respond with generated response
-		respond := rand.Float64() < *chattiness
-		if !respond && m.Chat.Type == telebot.ChatPrivate {
-			respond = true
-			logDebug("Respond: TRUE, private chat")
-		} else if !respond {
-			logDebug("Respond: Not feeling chatty, checking for direct mention")
-			for _, entity := range m.Entities {
-				logDebug("Respond: Found entity " + string(entity.Type))
-				if entity.Type == telebot.EntityMention {
-					mention := m.Text[entity.Offset : entity.Offset+entity.Length]
-					logDebug("Respond: Entity is " + mention)
-					if mention == "@"+bot.Me.Username {
-						respond = true
-						logDebug("Respond: TRUE, @mentioned directly")
-					}
-				}
-			}
-			if !respond {
-				logDebug("Respond: FALSE, not feeling chatty")
-			}
-		} else {
-			fmt.Println("Respond: TRUE, feeling chatty")
-		}
+        respond := decideWhetherToRespond(m, *chattiness, "@"+bot.Me.Username)
 
 		if respond {
 			logDebug("Responding...")
@@ -224,5 +202,30 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 	return tokens
 }
 
-//decideWhetherToRespond(m *telebot.Message, chattiness int, name string) {
-//}
+func decideWhetherToRespond(m *telebot.Message, chattiness float64, name string) bool {
+    respond := rand.Float64() < chattiness
+    if !respond && m.Chat.Type == telebot.ChatPrivate {
+        respond = true
+        logDebug("Respond: TRUE, private chat")
+    } else if !respond {
+        logDebug("Respond: Not feeling chatty, checking for direct mention")
+        for _, entity := range m.Entities {
+            logDebug("Respond: Found entity " + string(entity.Type))
+            if entity.Type == telebot.EntityMention {
+                mention := m.Text[entity.Offset : entity.Offset+entity.Length]
+                logDebug("Respond: Entity is " + mention)
+                if mention == name {
+                    respond = true
+                    logDebug("Respond: TRUE, @mentioned directly")
+                }
+            }
+        }
+        if !respond {
+            logDebug("Respond: FALSE, not feeling chatty")
+        }
+    } else {
+        fmt.Println("Respond: TRUE, feeling chatty")
+    }
+
+    return respond
+}
