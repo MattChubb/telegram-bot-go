@@ -89,9 +89,7 @@ func main() {
 	fmt.Println("Adding chain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
-		if debug {
-			fmt.Println("Received message: ", m.Text)
-		}
+		logDebug("Received message: " + m.Text)
 		parsedMessage := processString(m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
@@ -100,50 +98,35 @@ func main() {
 		//Respond with generated response
 		respond := rand.Float64() < *chattiness
 		if !respond && m.Chat.Type == telebot.ChatPrivate {
-			if debug {
-				fmt.Println("Respond: TRUE, private chat")
-			}
 			respond = true
+			logDebug("Respond: TRUE, private chat")
 		} else if !respond {
-			if debug {
-				fmt.Println("Respond: Not feeling chatty, checking for direct mention")
-			}
+			logDebug("Respond: Not feeling chatty, checking for direct mention")
 			for _, entity := range m.Entities {
-				if debug {
-					fmt.Println("Respond: Found entity ", entity)
-				}
+				logDebug("Respond: Found entity " + string(entity.Type))
 				if entity.Type == telebot.EntityMention {
 					mention := m.Text[entity.Offset : entity.Offset+entity.Length]
-					if debug {
-						fmt.Println("Respond: Entity is ", mention)
-					}
+					logDebug("Respond: Entity is " + mention)
 					if mention == "@"+bot.Me.Username {
 						respond = true
-						if debug {
-							fmt.Println("Respond: TRUE, @mentioned directly")
-						}
+						logDebug("Respond: TRUE, @mentioned directly")
 					}
 				}
 			}
-		} else if debug && respond {
+			if !respond {
+				logDebug("Respond: FALSE, not feeling chatty")
+			}
+		} else {
 			fmt.Println("Respond: TRUE, feeling chatty")
-		} else if debug && !respond {
-			fmt.Println("Respond: FALSE, not feeling chatty")
 		}
 
 		if respond {
-			if debug {
-				fmt.Println("Responding...")
-			}
+			logDebug("Responding...")
 			response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
-			if debug {
-				fmt.Println("Sending response: ", response)
-			}
+			logDebug("Sending response: " + response)
 			bot.Send(m.Chat, response)
 		} else {
-			if debug {
-				fmt.Println("Not responding")
-			}
+			logDebug("Not responding")
 		}
 
 		mNumber++
@@ -156,6 +139,12 @@ func main() {
 	fmt.Println("Starting bot...")
 	bot.Start()
 	fmt.Println("Bot stopped")
+}
+
+func logDebug(e string) {
+	if debug {
+		fmt.Println(e)
+	}
 }
 
 func saveChain(chain *gomarkov.Chain, file string) {
@@ -220,7 +209,7 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 		}
 
 		if len(next) > 0 {
-            //TODO Add a wordfilter
+			//TODO Add a wordfilter
 			tokens = append(tokens, next)
 		} else {
 			tokens = append(tokens, gomarkov.EndToken)
