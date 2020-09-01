@@ -15,11 +15,13 @@ import (
 	"time"
 )
 
+var debug bool
+
 func main() {
 	//Read params from command line
 	chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
 	chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
-	debug := flag.Bool("debug", false, "Debug logging")
+	flag.BoolVar(&debug, "debug", false, "Debug logging")
 	order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
 	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
 	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
@@ -87,7 +89,7 @@ func main() {
 	fmt.Println("Adding chain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
-		if *debug {
+		if debug {
 			fmt.Println("Received message: ", m.Text)
 		}
 		parsedMessage := processString(m.Text)
@@ -98,48 +100,48 @@ func main() {
 		//Respond with generated response
 		respond := rand.Float64() < *chattiness
 		if !respond && m.Chat.Type == telebot.ChatPrivate {
-			if *debug {
+			if debug {
 				fmt.Println("Respond: TRUE, private chat")
 			}
 			respond = true
 		} else if !respond {
-			if *debug {
+			if debug {
 				fmt.Println("Respond: Not feeling chatty, checking for direct mention")
 			}
 			for _, entity := range m.Entities {
-				if *debug {
+				if debug {
 					fmt.Println("Respond: Found entity ", entity)
 				}
 				if entity.Type == telebot.EntityMention {
 					mention := m.Text[entity.Offset : entity.Offset+entity.Length]
-					if *debug {
+					if debug {
 						fmt.Println("Respond: Entity is ", mention)
 					}
 					if mention == "@"+bot.Me.Username {
 						respond = true
-						if *debug {
+						if debug {
 							fmt.Println("Respond: TRUE, @mentioned directly")
 						}
 					}
 				}
 			}
-		} else if *debug && respond {
+		} else if debug && respond {
 			fmt.Println("Respond: TRUE, feeling chatty")
-		} else if *debug && !respond {
+		} else if debug && !respond {
 			fmt.Println("Respond: FALSE, not feeling chatty")
 		}
 
 		if respond {
-			if *debug {
+			if debug {
 				fmt.Println("Responding...")
 			}
 			response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
-			if *debug {
+			if debug {
 				fmt.Println("Sending response: ", response)
 			}
 			bot.Send(m.Chat, response)
 		} else {
-			if *debug {
+			if debug {
 				fmt.Println("Not responding")
 			}
 		}
@@ -232,3 +234,6 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 	}
 	return tokens
 }
+
+//decideWhetherToRespond(m *telebot.Message, chattiness int, name string) {
+//}
