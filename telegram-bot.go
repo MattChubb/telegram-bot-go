@@ -218,6 +218,7 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 		}
 
 		if len(next) > 0 {
+//TODO Add a wordfilter
 			tokens = append(tokens, next)
 		} else {
 			tokens = append(tokens, gomarkov.EndToken)
