@@ -224,7 +224,7 @@ func decideWhetherToRespond(m *telebot.Message, chattiness float64, name string)
             logDebug("Respond: FALSE, not feeling chatty")
         }
     } else {
-        fmt.Println("Respond: TRUE, feeling chatty")
+        logDebug("Respond: TRUE, feeling chatty")
     }
 
     return respond

@@ -199,6 +199,28 @@ func TestDecideWhetherToRespond(t *testing.T) {
             },
             true,
         },
+        {
+            "Group chat, mentioned directly amongst others",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "@test @bot test",
+                Entities: []telebot.MessageEntity{
+                    {
+                        Type: telebot.EntityMention,
+                        Offset: 0,
+                        Length: 5,
+                    },
+                    {
+                        Type: telebot.EntityMention,
+                        Offset: 6,
+                        Length: 4,
+                    },
+                },
+                Chat: &telebot.Chat{Type: ""},
+            },
+            true,
+        },
     }
 
 	for _, table := range tables {
