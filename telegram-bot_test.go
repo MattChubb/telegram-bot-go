@@ -124,8 +124,79 @@ func TestDecideWhetherToRespond(t *testing.T) {
         {
             "Feeling chatty",
             1,
-            "bot",
+            "@bot",
             &telebot.Message{Text: "test"},
+            true,
+        },
+        {
+            "Not feeling chatty",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "test",
+                Chat: &telebot.Chat{Type: ""},
+            },
+            false,
+        },
+        {
+            "Private chat, not feeling chatty",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "test",
+                Chat: &telebot.Chat{Type: telebot.ChatPrivate},
+            },
+            true,
+        },
+        {
+            "Private chat, feeling chatty",
+            1,
+            "@bot",
+            &telebot.Message{
+                Text: "test",
+                Chat: &telebot.Chat{Type: telebot.ChatPrivate},
+            },
+            true,
+        },
+        {
+            "Group chat, not mentioned directly",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "test test test",
+                Entities: []telebot.MessageEntity{{}},
+                Chat: &telebot.Chat{Type: ""},
+            },
+            false,
+        },
+        {
+            "Group chat, someone else mentioned directly",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "test test test",
+                Entities: []telebot.MessageEntity{{
+                    Type: telebot.EntityMention,
+                    Offset: 4,
+                    Length: 4,
+                }},
+                Chat: &telebot.Chat{Type: ""},
+            },
+            false,
+        },
+        {
+            "Group chat, mentioned directly",
+            0,
+            "@bot",
+            &telebot.Message{
+                Text: "test @bot test",
+                Entities: []telebot.MessageEntity{{
+                    Type: telebot.EntityMention,
+                    Offset: 5,
+                    Length: 4,
+                }},
+                Chat: &telebot.Chat{Type: ""},
+            },
             true,
         },
     }
