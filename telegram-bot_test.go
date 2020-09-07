@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/mb-14/gomarkov"
+	"github.com/tucnak/telebot"
 	"reflect"
 	"testing"
 )
@@ -108,6 +109,30 @@ func TestGenerateResponse(t *testing.T) {
 		} else {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d characters returned)", len(got))
+		}
+	}
+}
+
+func TestDecideWhetherToRespond(t *testing.T) {
+	tables := []struct {
+		testcase string
+		input    struct {
+            chattiness float64
+            name string
+            m *telebot.Message
+        }
+		expected []string
+	}{
+
+    }
+
+	for _, table := range tables {
+		t.Logf("Testing: %s", table.testcase)
+		got := decideWhetherToRespond(table.input.m, table.input.chattiness, table.input.name)
+		if !reflect.DeepEqual(got, table.expected) {
+			t.Errorf("expected: %#v, got: %#v", table.expected, got)
+		} else {
+			t.Log("Passed")
 		}
 	}
 }
