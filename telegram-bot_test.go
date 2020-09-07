@@ -116,19 +116,23 @@ func TestGenerateResponse(t *testing.T) {
 func TestDecideWhetherToRespond(t *testing.T) {
 	tables := []struct {
 		testcase string
-		input    struct {
-            chattiness float64
-            name string
-            m *telebot.Message
-        }
-		expected []string
+        chattiness float64
+        name string
+        m *telebot.Message
+		expected bool
 	}{
-
+        {
+            "Feeling chatty",
+            1,
+            "bot",
+            &telebot.Message{Text: "test"},
+            true,
+        },
     }
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-		got := decideWhetherToRespond(table.input.m, table.input.chattiness, table.input.name)
+		got := decideWhetherToRespond(table.m, table.chattiness, table.name)
 		if !reflect.DeepEqual(got, table.expected) {
 			t.Errorf("expected: %#v, got: %#v", table.expected, got)
 		} else {
