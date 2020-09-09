@@ -139,8 +139,7 @@ func saveChain(chain *gomarkov.Chain, file string) {
 
 func processString(rawString string) []string {
 	//TODO Handle punctuation other than spaces
-	//TODO Lowercase everything to reduce the token space
-	return strings.Split(rawString, " ")
+	return strings.Split(strings.ToLower(rawString), " ")
 }
 
 func trainFromFile(chain *gomarkov.Chain, file *os.File) {
