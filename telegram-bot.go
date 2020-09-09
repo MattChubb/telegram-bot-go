@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/mb-14/gomarkov"
 	"github.com/tucnak/telebot"
+    "github.com/TwinProduction/go-away"
 	"io/ioutil"
 	"log"
 	"math/rand"
@@ -186,8 +187,8 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 			log.Fatal(err)
 		}
 
-		if len(next) > 0 {
-			//TODO Add a wordfilter
+        //TODO Implement a replacement wordfilter instead of just removing profanity
+		if len(next) > 0 && ! goaway.IsProfane(next) {
 			tokens = append(tokens, next)
 		} else {
 			tokens = append(tokens, gomarkov.EndToken)
