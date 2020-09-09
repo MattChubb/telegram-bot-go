@@ -113,6 +113,12 @@ func TestGenerateResponse(t *testing.T) {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d characters returned)", len(got))
 		}
+
+        if got[0] == 'T' || got[0] == 'D' {
+            t.Logf("Passed (First letter %q capitalised)", got[0])
+        } else {
+            t.Errorf("First letter %q not capitalised", got[0])
+        }
 	}
 }
 

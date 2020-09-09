@@ -161,7 +161,8 @@ func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) 
 	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
 	//TODO Any other clever Markov hacks?
 	sentence := generateSentence(chain, subject, lengthLimit)
-	return strings.Join(sentence, " ")
+    sentence[0] = strings.Title(sentence[0])
+    return strings.Join(sentence, " ")
 }
 
 func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []string {
