@@ -156,8 +156,7 @@ func trainFromFile(chain *gomarkov.Chain, file *os.File) {
 func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) string {
 	subject := []string{}
 	if len(message) > 0 {
-		//TODO Do something cleverer with subject extraction
-		subject = append([]string{}, message[rand.Intn(len(message))])
+		subject = extractSubject(message)
 	}
 	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
 	//TODO Any other clever Markov hacks?
@@ -169,6 +168,7 @@ func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) 
 func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []string {
 	// This function has been separated from response generation to allow bidirectional generation later
 	tokens := []string{}
+    // The length of our initialisation chain needs to match the Markov order
 	if len(init) < chain.Order {
 		for i := 0; i < chain.Order; i++ {
 			tokens = append(tokens, gomarkov.StartToken)
@@ -201,6 +201,34 @@ func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []s
 		tokens = tokens[1:]
 	}
 	return tokens
+}
+
+func extractSubject(message []string) []string {
+    //TODO Do something cleverer with subject extraction
+    //TODO Extract more than one word as a subject
+    trimmedMessage := trimMessage(message)
+    return append([]string{}, trimmedMessage[rand.Intn(len(trimmedMessage))])
+}
+
+func trimMessage(message []string) []string {
+    trimmedMessage := []string{}
+    for _, word := range message {
+        if ! isStopWord(word) {
+            trimmedMessage = append(trimmedMessage, word)
+        }
+    }
+    return trimmedMessage
+}
+
+func isStopWord(word string) bool {
+    stopWords := []string{"the", "and", "to", "a", "i", "in", "be", "of", "that", "have", "it", }
+    for _, stopWord := range stopWords {
+        if word == stopWord {
+            return true
+        }
+    }
+
+    return false
 }
 
 func decideWhetherToRespond(m *telebot.Message, chattiness float64, name string) bool {
