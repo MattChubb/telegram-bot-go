@@ -251,6 +251,7 @@ func TestTrimMessage(t *testing.T){
 	}{
 		{"1 uncommon word", []string{"test"}, []string{"test"}},
 		{"1 uncommon word, 1 common word", []string{"the", "test"}, []string{"test"}},
+		{"Mention", []string{"test", "@self"}, []string{"test"}},
 	}
 
 	for _, table := range tables {

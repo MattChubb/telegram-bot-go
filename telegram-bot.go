@@ -207,13 +207,18 @@ func extractSubject(message []string) []string {
     //TODO Do something cleverer with subject extraction
     //TODO Extract more than one word as a subject
     trimmedMessage := trimMessage(message)
-    return append([]string{}, trimmedMessage[rand.Intn(len(trimmedMessage))])
+    subject := []string{}
+    if len(trimmedMessage) > 0 {
+        subject = append(subject, trimmedMessage[rand.Intn(len(trimmedMessage))])
+    }
+    return subject
 }
 
 func trimMessage(message []string) []string {
     trimmedMessage := []string{}
     for _, word := range message {
-        if ! isStopWord(word) {
+        //TODO Only exclude self-mentions
+        if ! isStopWord(word) && word[0] != '@' {
             trimmedMessage = append(trimmedMessage, word)
         }
     }
