@@ -170,8 +170,12 @@ func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) 
 
 func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []string {
 	// This function has been separated from response generation to allow bidirectional generation later
-	tokens := []string{}
+
+    //Train on the initial tokens to avoid unknown n-grams
+    chain.Add(init)
+
     // The length of our initialisation chain needs to match the Markov order
+	tokens := []string{}
 	if len(init) < chain.Order {
 		for i := 0; i < chain.Order; i++ {
 			tokens = append(tokens, gomarkov.StartToken)

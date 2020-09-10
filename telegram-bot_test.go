@@ -54,8 +54,7 @@ func TestGenerateSentence(t *testing.T) {
 		{"1 word 2", []string{"data"}},
 		{"2 words", []string{"test", "data"}},
 		{"3 words", []string{"test", "data", "test"}},
-		//TODO We expect unknown words to fail
-		//{"Unknown word", []string{"testing"}},
+		{"Unknown word", []string{"testing"}},
 	}
 
 	chain := gomarkov.NewChain(1)
@@ -93,8 +92,7 @@ func TestGenerateResponse(t *testing.T) {
 		{"1 word 2", []string{"data"}},
 		{"2 words", []string{"test", "data"}},
 		{"3 words", []string{"test", "data", "test"}},
-		//TODO We expect unknown words to fail
-		//{"Unknown word", []string{"testing"}},
+		{"Unknown word", []string{"testing"}},
 	}
 
 	chain := gomarkov.NewChain(1)
