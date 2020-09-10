@@ -27,24 +27,11 @@ func main() {
 	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
 	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
 	tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
+    trainOnly := flag.Bool("train-only", false, "Training only mode, do not attempt to connect to Telegram")
 	flag.Parse()
 
 	//Initialise
 	rand.Seed(time.Now().Unix())
-
-	//Initilise Telegram bot
-	fmt.Println("Initialising bot...")
-	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
-	bot, err := telebot.NewBot(telebot.Settings{
-		URL:   "",
-		Token: botToken,
-		Poller: &telebot.LongPoller{
-			Timeout: 10 * time.Second,
-		},
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	//Initialise chain
 	fmt.Println("Initialising chain...")
@@ -59,7 +46,6 @@ func main() {
 	}
 
 	//Train
-	//TODO Allow running in training-only mode for training models
 	//TODO Allow specifying a list of files instead of a directory
 	if len(*sourceDir) > 0 {
 		fmt.Println("Opening source data...")
@@ -83,6 +69,23 @@ func main() {
 		if len(*chainFilePath) > 0 {
 			saveChain(chain, *chainFilePath)
 		}
+	}
+    if *trainOnly {
+        os.Exit(0)
+    }
+
+	//Initilise Telegram bot
+	fmt.Println("Initialising bot...")
+	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
+	bot, err := telebot.NewBot(telebot.Settings{
+		URL:   "",
+		Token: botToken,
+		Poller: &telebot.LongPoller{
+			Timeout: 10 * time.Second,
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	//Connect Markov to Telegram
