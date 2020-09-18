@@ -1,4 +1,4 @@
-package markovbrain
+package markov
 
 import (
 	"github.com/mb-14/gomarkov"
@@ -12,6 +12,8 @@ func (brain Brain) Init(order int) {
 	brain.chain = *gomarkov.NewChain(order)
 }
 
-func Train() {}
+func (brain Brain) Train(data string) error {
+    return nil
+}
 
 func Generate() {}
