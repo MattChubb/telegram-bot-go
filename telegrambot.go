@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"github.com/mb-14/gomarkov"
 	"github.com/tucnak/telebot"
     "github.com/TwinProduction/go-away"
@@ -37,10 +36,10 @@ func main() {
     }
 
 	//Initialise chain
-	fmt.Println("Initialising chain...")
+	log.Info("Initialising chain...")
 	chain := gomarkov.NewChain(*order)
 	if len(*chainFilePath) > 0 {
-		fmt.Println("Loading chain from: ", *chainFilePath)
+		log.Info("Loading chain from: ", *chainFilePath)
 		chainFile, err := ioutil.ReadFile(*chainFilePath)
 		if err != nil {
 			log.Fatal(err)
@@ -51,13 +50,13 @@ func main() {
 	//Train
 	//TODO Allow specifying a list of files instead of a directory
 	if len(*sourceDir) > 0 {
-		fmt.Println("Opening source data...")
+		log.Info("Opening source data...")
 		source_files, err := ioutil.ReadDir(*sourceDir)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Println("Training chain on source data...")
+		log.Info("Training chain on source data...")
 		for _, fileInfo := range source_files {
 			if fileInfo.Name()[1] == '.' {
 				continue
@@ -78,7 +77,7 @@ func main() {
     }
 
 	//Initilise Telegram bot
-	fmt.Println("Initialising bot...")
+	log.Info("Initialising bot...")
 	botToken := os.Getenv("TELEGRAM_BOT_TOKEN")
 	bot, err := telebot.NewBot(telebot.Settings{
 		URL:   "",
@@ -93,7 +92,7 @@ func main() {
 
 	//Connect Markov to Telegram
 	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
-	fmt.Println("Adding chain to bot...")
+	log.Info("Adding chain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
 		log.Debug("Received message: " + m.Text)
@@ -121,20 +120,13 @@ func main() {
 		}
 	})
 
-	fmt.Println("Starting bot...")
+	log.Info("Starting bot...")
 	bot.Start()
-	fmt.Println("Bot stopped")
-}
-
-func logDebug(e string) {
-	//if debug {
-		//fmt.Println(e)
-		log.Print(e)
-	//}
+	log.Info("Bot stopped")
 }
 
 func saveChain(chain *gomarkov.Chain, file string) {
-	fmt.Println("Saving chain...")
+	log.Info("Saving chain...")
 	chainJSON, err := json.Marshal(chain)
 	if err != nil {
 		log.Fatal(err)
