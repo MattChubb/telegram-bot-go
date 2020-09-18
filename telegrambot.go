@@ -1,4 +1,4 @@
-package main
+package telegrambot
 
 import (
 	"bufio"
