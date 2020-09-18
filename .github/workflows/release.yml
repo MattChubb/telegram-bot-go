@@ -13,12 +13,11 @@ jobs:
     - name: compile and release
       uses: ngs/go-release.action@master
       env:
-        PROJECT_NAME: "telegrambot"
+        PROJECT_NAME: "telegram-bot-go"
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         GOARCH: "386"
         GOOS: linux
         EXTRA_FILES: ""
-        CMD_PATH: "."
   release-linux-amd64:
     name: release linux/amd64
     runs-on: ubuntu-latest
