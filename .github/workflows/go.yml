@@ -34,7 +34,7 @@ jobs:
       run: go build -v .
 
     - name: Test
-      run: go test -v .
+      run: go test -v ./...
 
 #    - name: compile and release
 #      uses: ngs/go-release.action@v1.0.1
