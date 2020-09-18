@@ -9,20 +9,18 @@ import (
 	"github.com/tucnak/telebot"
     "github.com/TwinProduction/go-away"
 	"io/ioutil"
-	"log"
+	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
 )
 
-var debug bool
-
 func main() {
 	//Read params from command line
 	chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
 	chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
-	flag.BoolVar(&debug, "debug", false, "Debug logging")
+	debug := flag.Bool("debug", false, "Debug logging")
 	order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
 	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
 	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
@@ -32,6 +30,11 @@ func main() {
 
 	//Initialise
 	rand.Seed(time.Now().Unix())
+    if *debug {
+        log.SetLevel(log.DebugLevel)
+    } else {
+        log.SetLevel(log.InfoLevel)
+    }
 
 	//Initialise chain
 	fmt.Println("Initialising chain...")
@@ -93,7 +96,7 @@ func main() {
 	fmt.Println("Adding chain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
-		logDebug("Received message: " + m.Text)
+		log.Debug("Received message: " + m.Text)
 		parsedMessage := processString(m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
@@ -103,12 +106,12 @@ func main() {
 		respond := decideWhetherToRespond(m, *chattiness, "@"+bot.Me.Username)
 
 		if respond {
-			logDebug("Responding...")
+			log.Debug("Responding...")
 			response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
-			logDebug("Sending response: " + response)
+			log.Debug("Sending response: " + response)
 			bot.Send(m.Chat, response)
 		} else {
-			logDebug("Not responding")
+			log.Debug("Not responding")
 		}
 
 		mNumber++
@@ -124,9 +127,10 @@ func main() {
 }
 
 func logDebug(e string) {
-	if debug {
-		fmt.Println(e)
-	}
+	//if debug {
+		//fmt.Println(e)
+		log.Print(e)
+	//}
 }
 
 func saveChain(chain *gomarkov.Chain, file string) {
@@ -247,25 +251,25 @@ func decideWhetherToRespond(m *telebot.Message, chattiness float64, name string)
 	respond := rand.Float64() < chattiness
 	if !respond && m.Chat.Type == telebot.ChatPrivate {
 		respond = true
-		logDebug("Respond: TRUE, private chat")
+		log.Debug("Respond: TRUE, private chat")
 	} else if !respond {
-		logDebug("Respond: Not feeling chatty, checking for direct mention")
+		log.Debug("Respond: Not feeling chatty, checking for direct mention")
 		for _, entity := range m.Entities {
-			logDebug("Respond: Found entity " + string(entity.Type))
+			log.Debug("Respond: Found entity " + string(entity.Type))
 			if entity.Type == telebot.EntityMention {
 				mention := m.Text[entity.Offset : entity.Offset+entity.Length]
-				logDebug("Respond: Entity is " + mention)
+				log.Debug("Respond: Entity is " + mention)
 				if mention == name {
 					respond = true
-					logDebug("Respond: TRUE, @mentioned directly")
+					log.Debug("Respond: TRUE, @mentioned directly")
 				}
 			}
 		}
 		if !respond {
-			logDebug("Respond: FALSE, not feeling chatty")
+			log.Debug("Respond: FALSE, not feeling chatty")
 		}
 	} else {
-		logDebug("Respond: TRUE, feeling chatty")
+		log.Debug("Respond: TRUE, feeling chatty")
 	}
 
 	return respond
