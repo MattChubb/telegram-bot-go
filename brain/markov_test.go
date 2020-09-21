@@ -8,20 +8,21 @@ import (
 func TestInit(t *testing.T) {
 	tables := []struct {
 		testcase string
-		input    int
+		order    int
+        length   int
 	}{
-        {"Chain of order 1", 1},
-        {"Chain of order 2", 2},
-        {"Chain of order 100", 100}, //Don't try this at home!
-        {"Chain of order 0", 0},
-        {"Chain of order -1", -1},
+        {"Chain of order 1", 1, 32},
+        {"Chain of order 2", 2, 32},
+        {"Chain of order 100", 100, 32}, //Don't try this at home!
+        {"Chain of order 0", 0, 32},
+        {"Chain of order -1", -1, 32},
     }
 
     brain := new(Brain)
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-		brain.Init(table.input)
+		brain.Init(table.order, table.length)
         t.Log("Initialised without crashing")
     }
 }
@@ -68,7 +69,7 @@ func TestTrain(t *testing.T) {
     }
 
     brain := new(Brain)
-    brain.Init(1)
+    brain.Init(1, 32)
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
@@ -82,4 +83,45 @@ func TestTrain(t *testing.T) {
             t.Log("Initialised without crashing")
         }
     }
+}
+
+func TestGenerate(t *testing.T) {
+	tables := []struct {
+		testcase string
+		input    string
+	}{
+		//TODO Trim empty strings from input
+		//{"Empty string", []string{""}},
+		{"1 word", "test"},
+		{"1 word 2", "data"},
+		{"2 words", "test data"},
+		{"3 words", "test data test"},
+		{"Unknown word", "testing"},
+	}
+
+    brain := new(Brain)
+    brain.Init(1, 32)
+
+	brain.Train("test data test data test data")
+	brain.Train("data test data test data")
+	brain.Train("test data test data test data")
+
+	for _, table := range tables {
+		t.Logf("Testing: %s", table.testcase)
+        //TODO Test error handling
+		got, _ := brain.Generate(table.input)
+
+		if len(got) < 1 {
+			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+		} else {
+			//t.Logf("Got: %#v", got)
+			t.Logf("Passed (%d characters returned)", len(got))
+		}
+
+        if got[0] == 'T' || got[0] == 'D' {
+            t.Logf("Passed (First letter %q capitalised)", got[0])
+        } else {
+            t.Errorf("First letter %q not capitalised", got[0])
+        }
+	}
 }
