@@ -216,3 +216,37 @@ func TestIsStopWord(t *testing.T){
 		}
 	}
 }
+
+func TestMarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		order   int
+		data    []string
+		want    string
+		wantErr bool
+	}{
+		{"Empty chain", 2, []string{}, `{"Chain":{"int":2,"spool_map":{},"freq_mat":{}},"LengthLimit":31}`, false},
+		{"Empty chain, order 1", 1, []string{}, `{"Chain":{"int":1,"spool_map":{},"freq_mat":{}},"LengthLimit":31}`, false},
+		{"Trained once", 1, []string{"test"}, `{"Chain":{"int":1,"spool_map":{"$":0,"^":2,"test":1},"freq_mat":{"0":{"1":1},"1":{"2":1}}},"LengthLimit":31}`, false},
+		{"Trained on more data", 1, []string{"test data", "test data", "test node"}, `{"Chain":{"int":1,"spool_map":{"$":0,"^":3,"data":2,"node":4,"test":1},"freq_mat":{"0":{"1":3},"1":{"2":2,"4":1},"2":{"3":2},"4":{"3":1}}},"LengthLimit":31}`, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+            brain := new(Brain)
+            brain.Init(tt.order, 31)
+			for _, data := range tt.data {
+				brain.Train(data)
+			}
+
+			got, err := brain.MarshalJSON()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Brain.MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(string(got), tt.want) {
+				t.Errorf("Brain.MarshalJSON() = %v, want %v", string(got), tt.want)
+			}
+		})
+	}
+}
+

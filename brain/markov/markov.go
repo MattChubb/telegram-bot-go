@@ -1,6 +1,7 @@
 package markov
 
 import (
+	"encoding/json"
 	"github.com/mb-14/gomarkov"
     "github.com/TwinProduction/go-away"
 	log "github.com/sirupsen/logrus"
@@ -11,6 +12,22 @@ import (
 type Brain struct {
     chain       *gomarkov.Chain
     lengthLimit int
+}
+
+type BrainJSON struct {
+    Chain       *gomarkov.Chain
+    LengthLimit int
+}
+
+func (brain Brain) MarshalJSON() ([]byte, error) {
+	log.Info("Saving chain...")
+
+    obj := BrainJSON{
+        brain.chain,
+        brain.lengthLimit,
+    }
+
+    return json.Marshal(obj)
 }
 
 func (brain *Brain) Init(order int, lengthLimit int) {
