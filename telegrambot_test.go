@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/mb-14/gomarkov"
-	"github.com/tucnak/telebot"
+	"gopkg.in/tucnak/telebot.v2"
 	"reflect"
 	"testing"
 )

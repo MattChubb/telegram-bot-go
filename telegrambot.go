@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/mb-14/gomarkov"
-	"github.com/tucnak/telebot"
+	"gopkg.in/tucnak/telebot.v2"
     "github.com/TwinProduction/go-away"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
