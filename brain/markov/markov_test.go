@@ -250,3 +250,40 @@ func TestMarshalJSON(t *testing.T) {
 	}
 }
 
+func TestUnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		args    []byte
+		wantErr bool
+	}{
+		{"Empty chain", []byte(`{"Chain":{"int":1,"spool_map":{},"freq_mat":{}},"LengthLimit":31}`), false},
+		{"More complex chain", []byte(`{"Chain":{"int":1,"spool_map":{"$":0,"^":3,"data":2,"node":4,"test":1},"freq_mat":{"0":{"1":3},"1":{"2":2,"4":1},"2":{"3":2},"4":{"3":1}}},"LengthLimit":31}`), false},
+		{"Invalid json", []byte(`{{"int":2,"spool_map":{},"freq_mat":{}}`), true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+            brain := new(Brain)
+
+			if err := brain.UnmarshalJSON(tt.args); (err != nil) != tt.wantErr {
+				t.Errorf("Brain.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+            } else {
+                t.Log("Successfully unmarshalled json")
+			}
+
+            if !tt.wantErr {
+                //An error unmarshalling means we don't have a brain to train or generate from
+                if err := brain.Train("test"); (err != nil) != tt.wantErr {
+                    t.Errorf("Brain.Train() error = %v, wantErr %v", err, tt.wantErr)
+                } else {
+                    t.Log("Successfully trained unmarshalled brain")
+                }
+
+                if _, err := brain.Generate("test"); (err != nil) != tt.wantErr {
+                    t.Errorf("Brain.Generate() error = %v, wantErr %v", err, tt.wantErr)
+                } else {
+                    t.Log("Successfully generated using trained unmarshalled brain")
+                }
+            }
+		})
+	}
+}

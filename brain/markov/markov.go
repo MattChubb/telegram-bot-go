@@ -14,7 +14,7 @@ type Brain struct {
     lengthLimit int
 }
 
-type BrainJSON struct {
+type brainJSON struct {
     Chain       *gomarkov.Chain
     LengthLimit int
 }
@@ -22,12 +22,26 @@ type BrainJSON struct {
 func (brain Brain) MarshalJSON() ([]byte, error) {
 	log.Info("Saving chain...")
 
-    obj := BrainJSON{
+    obj := brainJSON{
         brain.chain,
         brain.lengthLimit,
     }
 
     return json.Marshal(obj)
+}
+
+func (brain *Brain) UnmarshalJSON(b []byte) error {
+	var obj brainJSON
+	err := json.Unmarshal(b, &obj)
+	if err != nil {
+		return err
+	}
+
+    brain.lengthLimit = obj.LengthLimit
+    brain.chain = obj.Chain
+    log.Debug("Braindump: ", brain)
+
+    return nil
 }
 
 func (brain *Brain) Init(order int, lengthLimit int) {
