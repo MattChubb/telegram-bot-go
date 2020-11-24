@@ -19,3 +19,6 @@
 
 # Saved chain
 chainFile.json
+
+#vim swap files
+*.swp
