@@ -3,6 +3,7 @@ package markov
 import (
 	"testing"
 	"reflect"
+    "regexp"
 	"github.com/mb-14/gomarkov"
 )
 
@@ -100,25 +101,19 @@ func TestGenerate(t *testing.T) {
 }
 
 func TestGenerateSentence(t *testing.T) {
-	/*
-	   Markov chains are inherently random, and so there's no real point in trying to test them deterministically.
-	   Instead, we can feed it various prompts and check we get _something_ out the other side
-	   TODO Check that what we get out is expected:
-	   * Contains only the words "test" and "data" in that order
-	   * Does not hit the tokensLengthLimit
-	*/
 	tables := []struct {
 		testcase string
 		input    []string
+        expected string
 	}{
-		{"Null", []string{}},
+		{"Null", []string{}, `((test)|(data))`},
 		//TODO Trim empty strings from input
 		//{"Empty string", []string{""}},
-		{"1 word", []string{"test"}},
-		{"1 word 2", []string{"data"}},
-		{"2 words", []string{"test", "data"}},
-		{"3 words", []string{"test", "data", "test"}},
-		{"Unknown word", []string{"testing"}},
+		{"1 word", []string{"test"}, `((test)|(data))`},
+		{"1 word 2", []string{"data"}, `((test)|(data))`},
+		{"2 words", []string{"test", "data"}, `((test)|(data))`},
+		{"3 words", []string{"test", "data", "test"}, `((test)|(data))`},
+		{"Unknown word", []string{"testing"}, `testing`},
 	}
 
     brain := new(Brain)
@@ -134,14 +129,19 @@ func TestGenerateSentence(t *testing.T) {
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+		} else if len(got) > 32 {
+			t.Errorf("Response largr than lengthlimit, got: %#v", got)
 		} else if got[0] == gomarkov.StartToken {
-			t.Errorf("Start token found, got: %#v", got)
+			t.Errorf("Start token not found, got: %#v", got)
 		} else if got[len(got)-1] == gomarkov.EndToken {
-			t.Errorf("End token found, got: %#v", got)
-		} else {
-			//t.Logf("Got: %#v", got)
-			t.Logf("Passed (%d tokens returned)", len(got))
+			t.Errorf("End token not found, got: %#v", got)
 		}
+
+        for _, word := range got {
+            if match, _ := regexp.Match(table.expected, []byte(word)); ! match {
+                t.Errorf("Output not as expected, got: %#v", got)
+            }
+        }
 	}
 }
 
