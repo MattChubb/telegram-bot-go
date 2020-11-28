@@ -17,8 +17,8 @@
 # Env vars
 .env
 
-# Saved chain
-chainFile.json
+# Saved brain
+brainFile.json
 
 #vim swap files
 *.swp
