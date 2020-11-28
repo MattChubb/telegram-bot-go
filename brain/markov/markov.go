@@ -5,6 +5,7 @@ import (
 	"github.com/mb-14/gomarkov"
     "github.com/TwinProduction/go-away"
 	log "github.com/sirupsen/logrus"
+    "regexp"
 	"strings"
     common "github.com/MattChubb/telegram-bot-go/brain"
 )
@@ -75,9 +76,6 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 func (brain *Brain) generateSentence(init []string) []string {
 	// This function has been separated from response generation to allow bidirectional generation later
 
-    //Train on the initial tokens to avoid unknown n-grams
-    brain.chain.Add(init)
-
     // The length of our initialisation chain needs to match the Markov order
 	tokens := []string{}
     order := brain.chain.Order
@@ -96,7 +94,9 @@ func (brain *Brain) generateSentence(init []string) []string {
 		len(tokens) < brain.lengthLimit {
 		next, err := brain.chain.Generate(tokens[(len(tokens) - 1):])
 		if err != nil {
-			log.Fatal(err)
+            if match, err := regexp.Match(`Unknown ngram.*`, []byte(err.Error())); !match {
+			    log.Fatal(err)
+            }
 		}
 
         //TODO Implement a replacement wordfilter instead of just removing profanity

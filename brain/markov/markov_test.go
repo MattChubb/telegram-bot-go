@@ -132,9 +132,9 @@ func TestGenerateSentence(t *testing.T) {
 		} else if len(got) > 32 {
 			t.Errorf("Response largr than lengthlimit, got: %#v", got)
 		} else if got[0] == gomarkov.StartToken {
-			t.Errorf("Start token not found, got: %#v", got)
+			t.Errorf("Start token found, got: %#v", got)
 		} else if got[len(got)-1] == gomarkov.EndToken {
-			t.Errorf("End token not found, got: %#v", got)
+			t.Errorf("End token found, got: %#v", got)
 		}
 
         for _, word := range got {
