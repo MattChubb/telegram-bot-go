@@ -4,23 +4,21 @@ import (
 	"bufio"
 	"encoding/json"
 	"flag"
-	"github.com/mb-14/gomarkov"
 	"gopkg.in/tucnak/telebot.v2"
-    "github.com/TwinProduction/go-away"
 	"io/ioutil"
 	log "github.com/sirupsen/logrus"
 	"math/rand"
 	"os"
-	"strings"
 	"time"
+    markov "github.com/MattChubb/telegram-bot-go/brain/markov"
 )
 
 func main() {
 	//Read params from command line
-	chainFilePath := flag.String("chainfile", "", "Saved JSON chain file")
+	brainFilePath := flag.String("brainfile", "", "Saved JSON brain file")
 	chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
 	debug := flag.Bool("debug", false, "Debug logging")
-	order := flag.Int("order", 1, "Markov chain order. Use caution with values above 2")
+	order := flag.Int("order", 1, "Markov brain order. Use caution with values above 2")
 	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
 	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
 	tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
@@ -35,16 +33,17 @@ func main() {
         log.SetLevel(log.InfoLevel)
     }
 
-	//Initialise chain
-	log.Info("Initialising chain...")
-	chain := gomarkov.NewChain(*order)
-	if len(*chainFilePath) > 0 {
-		log.Info("Loading chain from: ", *chainFilePath)
-		chainFile, err := ioutil.ReadFile(*chainFilePath)
+	//Initialise brain
+	log.Info("Initialising brain...")
+    brain := new(markov.Brain)
+    brain.Init(*order, *tokensLengthLimit)
+	if len(*brainFilePath) > 0 {
+		log.Info("Loading brain from: ", *brainFilePath)
+		brainFile, err := ioutil.ReadFile(*brainFilePath)
 		if err != nil {
 			log.Fatal(err)
 		}
-		chain.UnmarshalJSON(chainFile)
+		brain.UnmarshalJSON(brainFile)
 	}
 
 	//Train
@@ -56,7 +55,7 @@ func main() {
 			log.Fatal(err)
 		}
 
-		log.Info("Training chain on source data...")
+		log.Info("Training on source data...")
 		for _, fileInfo := range source_files {
 			if fileInfo.Name()[1] == '.' {
 				continue
@@ -65,11 +64,11 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			trainFromFile(chain, sourceFile)
+			trainFromFile(brain, sourceFile)
 		}
 
-		if len(*chainFilePath) > 0 {
-			saveChain(chain, *chainFilePath)
+		if len(*brainFilePath) > 0 {
+			saveBrain(brain, *brainFilePath)
 		}
 	}
     if *trainOnly {
@@ -91,22 +90,20 @@ func main() {
 	}
 
 	//Connect Markov to Telegram
-	//TODO Decouple the Markov implementation from the Telegram bot, allowing other techniques to be swapped in later
-	log.Info("Adding chain to bot...")
+	log.Info("Adding brain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
 		log.Debug("Received message: " + m.Text)
-		parsedMessage := processString(m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
-		chain.Add(parsedMessage)
+		brain.Train(m.Text)
 
 		//Respond with generated response
 		respond := decideWhetherToRespond(m, *chattiness, "@"+bot.Me.Username)
 
 		if respond {
 			log.Debug("Responding...")
-			response := generateResponse(chain, parsedMessage, *tokensLengthLimit)
+			response, _ := brain.Generate(m.Text)
 			log.Debug("Sending response: " + response)
 			bot.Send(m.Chat, response)
 		} else {
@@ -114,9 +111,9 @@ func main() {
 		}
 
 		mNumber++
-		if mNumber > *saveEvery && len(*chainFilePath) > 0 {
+		if mNumber > *saveEvery && len(*brainFilePath) > 0 {
 			mNumber = 0
-			saveChain(chain, *chainFilePath)
+			saveBrain(brain, *brainFilePath)
 		}
 	})
 
@@ -125,118 +122,26 @@ func main() {
 	log.Info("Bot stopped")
 }
 
-func saveChain(chain *gomarkov.Chain, file string) {
-	log.Info("Saving chain...")
-	chainJSON, err := json.Marshal(chain)
+func saveBrain(brain *markov.Brain, file string) {
+	log.Info("Saving brain...")
+	brainJSON, err := json.Marshal(brain)
 	if err != nil {
 		log.Fatal(err)
 	}
-	err = ioutil.WriteFile(file, chainJSON, 0644)
+	err = ioutil.WriteFile(file, brainJSON, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
-func processString(rawString string) []string {
-	//TODO Handle punctuation other than spaces
-	return strings.Split(strings.ToLower(rawString), " ")
-}
-
-func trainFromFile(chain *gomarkov.Chain, file *os.File) {
+func trainFromFile(brain *markov.Brain, file *os.File) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		chain.Add(processString(scanner.Text()))
+		brain.Train(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func generateResponse(chain *gomarkov.Chain, message []string, lengthLimit int) string {
-	subject := []string{}
-	if len(message) > 0 {
-		subject = extractSubject(message)
-	}
-	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
-	//TODO Any other clever Markov hacks?
-	sentence := generateSentence(chain, subject, lengthLimit)
-    sentence[0] = strings.Title(sentence[0])
-    return strings.Join(sentence, " ")
-}
-
-func generateSentence(chain *gomarkov.Chain, init []string, lengthLimit int) []string {
-	// This function has been separated from response generation to allow bidirectional generation later
-
-    //Train on the initial tokens to avoid unknown n-grams
-    chain.Add(init)
-
-    // The length of our initialisation chain needs to match the Markov order
-	tokens := []string{}
-	if len(init) < chain.Order {
-		for i := 0; i < chain.Order; i++ {
-			tokens = append(tokens, gomarkov.StartToken)
-		}
-		tokens = append(tokens, init...)
-	} else if len(init) > chain.Order {
-		tokens = init[:chain.Order]
-	} else {
-		tokens = init
-	}
-
-	for tokens[len(tokens)-1] != gomarkov.EndToken &&
-		len(tokens) < lengthLimit {
-		next, err := chain.Generate(tokens[(len(tokens) - 1):])
-		if err != nil {
-			log.Fatal(err)
-		}
-
-        //TODO Implement a replacement wordfilter instead of just removing profanity
-		if len(next) > 0 && ! goaway.IsProfane(next) {
-			tokens = append(tokens, next)
-		} else {
-			tokens = append(tokens, gomarkov.EndToken)
-		}
-	}
-
-	//Don't include the start or end token in our response
-	tokens = tokens[:len(tokens)-1]
-	if tokens[0] == gomarkov.StartToken {
-		tokens = tokens[1:]
-	}
-	return tokens
-}
-
-func extractSubject(message []string) []string {
-    //TODO Do something cleverer with subject extraction
-    //TODO Extract more than one word as a subject
-    trimmedMessage := trimMessage(message)
-    subject := []string{}
-    if len(trimmedMessage) > 0 {
-        subject = append(subject, trimmedMessage[rand.Intn(len(trimmedMessage))])
-    }
-    return subject
-}
-
-func trimMessage(message []string) []string {
-    trimmedMessage := []string{}
-    for _, word := range message {
-        //TODO Only exclude self-mentions
-        if ! isStopWord(word) && word[0] != '@' {
-            trimmedMessage = append(trimmedMessage, word)
-        }
-    }
-    return trimmedMessage
-}
-
-func isStopWord(word string) bool {
-    stopWords := []string{"the", "and", "to", "a", "i", "in", "be", "of", "that", "have", "it", }
-    for _, stopWord := range stopWords {
-        if word == stopWord {
-            return true
-        }
-    }
-
-    return false
 }
 
 func decideWhetherToRespond(m *telebot.Message, chattiness float64, name string) bool {
