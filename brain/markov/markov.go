@@ -5,8 +5,8 @@ import (
 	"github.com/mb-14/gomarkov"
     "github.com/TwinProduction/go-away"
 	log "github.com/sirupsen/logrus"
-	"math/rand"
 	"strings"
+    common "github.com/MattChubb/telegram-bot-go/brain"
 )
 
 type Brain struct {
@@ -53,17 +53,17 @@ func (brain *Brain) Init(order int, lengthLimit int) {
 func (brain *Brain) Train(data string) error {
     log.Debug("Braindump: ", brain)
     log.Debug("Training data: ", data)
-    processedData := processString(data)
+    processedData := common.ProcessString(data)
     log.Debug("Processed into: ", processedData)
     brain.chain.Add(processedData)
     return nil
 }
 
 func (brain *Brain) Generate(prompt string) (string, error) {
-    processedPrompt := processString(prompt)
+    processedPrompt := common.ProcessString(prompt)
 	subject := []string{}
 	if len(processedPrompt) > 0 {
-		subject = extractSubject(processedPrompt)
+		subject = common.ExtractSubject(processedPrompt)
 	}
 	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
 	//TODO Any other clever Markov hacks?
@@ -113,42 +113,4 @@ func (brain *Brain) generateSentence(init []string) []string {
 		tokens = tokens[1:]
 	}
 	return tokens
-}
-
-func processString(rawString string) []string {
-	//TODO Handle punctuation other than spaces
-	return strings.Split(strings.ToLower(rawString), " ")
-}
-
-func extractSubject(message []string) []string {
-    //TODO Do something cleverer with subject extraction
-    //TODO Extract more than one word as a subject
-    trimmedMessage := trimMessage(message)
-    subject := []string{}
-    if len(trimmedMessage) > 0 {
-        subject = append(subject, trimmedMessage[rand.Intn(len(trimmedMessage))])
-    }
-    return subject
-}
-
-func trimMessage(message []string) []string {
-    trimmedMessage := []string{}
-    for _, word := range message {
-        //TODO Only exclude self-mentions
-        if ! isStopWord(word) && word[0] != '@' {
-            trimmedMessage = append(trimmedMessage, word)
-        }
-    }
-    return trimmedMessage
-}
-
-func isStopWord(word string) bool {
-    stopWords := []string{"the", "and", "to", "a", "i", "in", "be", "of", "that", "have", "it", }
-    for _, stopWord := range stopWords {
-        if word == stopWord {
-            return true
-        }
-    }
-
-    return false
 }
