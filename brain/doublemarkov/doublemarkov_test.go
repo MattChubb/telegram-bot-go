@@ -105,6 +105,8 @@ func TestGenerate(t *testing.T) {
         t.Errorf("Nothing generated before subject, got: %#v", got)
     } else if got[len(got)-7:len(got)] == "subject" {
         t.Errorf("Nothing generated after subject, got: %#v", got)
+    } else if match, _ := regexp.Match(`subject subject`, []byte(got)); match {
+        t.Errorf("Subject generated twice, got: %#v", got)
     } else {
         t.Logf("Passed (text generated either side of subject): %#v", got[len(got)-7:len(got)])
     }

@@ -11,7 +11,8 @@ import (
 	"os"
 	"time"
     brain "github.com/MattChubb/telegram-bot-go/brain"
-    markov "github.com/MattChubb/telegram-bot-go/brain/markov"
+    doublemarkov "github.com/MattChubb/telegram-bot-go/brain/doublemarkov"
+    //markov "github.com/MattChubb/telegram-bot-go/brain/markov"
 )
 
 func main() {
@@ -36,7 +37,7 @@ func main() {
 
 	//Initialise brain
 	log.Info("Initialising brain...")
-    brain := new(markov.Brain)
+    brain := new(doublemarkov.Brain)
     brain.Init(*order, *tokensLengthLimit)
 	if len(*brainFilePath) > 0 {
 		log.Info("Loading brain from: ", *brainFilePath)

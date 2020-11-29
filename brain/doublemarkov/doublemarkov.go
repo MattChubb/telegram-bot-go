@@ -80,6 +80,7 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 	sentence := brain.generateSentence(brain.bckChain, subject)
 	end := brain.generateSentence(brain.fwdChain, subject)
 
+    sentence = sentence[1:]
     reverse(sentence)
     sentence = append(sentence, end...)
     sentence[0] = strings.Title(sentence[0])
