@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	"os"
 	"time"
+    brain "github.com/MattChubb/telegram-bot-go/brain"
     markov "github.com/MattChubb/telegram-bot-go/brain/markov"
 )
 
@@ -122,7 +123,7 @@ func main() {
 	log.Info("Bot stopped")
 }
 
-func saveBrain(brain *markov.Brain, file string) {
+func saveBrain(brain brain.Brain, file string) {
 	log.Info("Saving brain...")
 	brainJSON, err := json.Marshal(brain)
 	if err != nil {
@@ -134,7 +135,7 @@ func saveBrain(brain *markov.Brain, file string) {
 	}
 }
 
-func trainFromFile(brain *markov.Brain, file *os.File) {
+func trainFromFile(brain brain.Brain, file *os.File) {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		brain.Train(scanner.Text())

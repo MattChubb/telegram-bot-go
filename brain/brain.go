@@ -5,6 +5,12 @@ import (
 	"math/rand"
 )
 
+type Brain interface{
+    Init(o int, l int)
+    Train(d string) error
+    Generate(p string) (string, error)
+}
+
 func ProcessString(rawString string) []string {
 	//TODO Handle punctuation other than spaces
 	return strings.Split(strings.ToLower(rawString), " ")
