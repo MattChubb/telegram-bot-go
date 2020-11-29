@@ -98,6 +98,7 @@ func TestGenerate(t *testing.T) {
             t.Errorf("First letter %q not capitalised", got[0])
         }
 	}
+    //TODO Test generated text using regex
 
     brain.Train("test subject data")
     got, _ := brain.Generate("subject")
