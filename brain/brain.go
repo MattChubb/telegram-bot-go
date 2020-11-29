@@ -6,7 +6,7 @@ import (
 )
 
 type Brain interface{
-    Init(o int, l int)
+    Init(o int, l int) //TODO Add a more flexible init method
     Train(d string) error
     Generate(p string) (string, error)
 }
@@ -39,6 +39,7 @@ func trimMessage(message []string) []string {
 }
 
 func isStopWord(word string) bool {
+    //TODO Use a better list of stopwords
     stopWords := []string{"the", "and", "to", "a", "i", "in", "be", "of", "that", "have", "it", }
     for _, stopWord := range stopWords {
         if word == stopWord {

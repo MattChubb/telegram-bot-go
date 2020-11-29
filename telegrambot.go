@@ -37,7 +37,7 @@ func main() {
 
 	//Initialise brain
 	log.Info("Initialising brain...")
-    brain := new(doublemarkov.Brain)
+    brain := new(doublemarkov.Brain) //TODO Switch brain types via config
     brain.Init(*order, *tokensLengthLimit)
 	if len(*brainFilePath) > 0 {
 		log.Info("Loading brain from: ", *brainFilePath)
@@ -51,6 +51,7 @@ func main() {
 	//Train
 	//TODO Allow specifying a list of files instead of a directory
 	if len(*sourceDir) > 0 {
+        //TODO Split training from source files into its own method
 		log.Info("Opening source data...")
 		source_files, err := ioutil.ReadDir(*sourceDir)
 		if err != nil {
@@ -95,6 +96,7 @@ func main() {
 	log.Info("Adding brain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
+        //TODO Split handler into its own method
 		log.Debug("Received message: " + m.Text)
 
 		//Train on input (Ensures we always have a response for new words)

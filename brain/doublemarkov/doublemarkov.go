@@ -10,6 +10,7 @@ import (
     common "github.com/MattChubb/telegram-bot-go/brain"
 )
 
+//TODO Use a bi-directional markov chain instead of 2 separate chains to lower memory footprint
 type Brain struct {
     bckChain    *gomarkov.Chain
     fwdChain    *gomarkov.Chain
