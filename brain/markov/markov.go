@@ -66,7 +66,6 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 	if len(processedPrompt) > 0 {
 		subject = common.ExtractSubject(processedPrompt)
 	}
-	//TODO Bi-directional generation using both a forwards and a backwards trained Markov chains
 	//TODO Any other clever Markov hacks?
 	sentence := brain.generateSentence(subject)
     sentence[0] = strings.Title(sentence[0])
@@ -74,8 +73,6 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 }
 
 func (brain *Brain) generateSentence(init []string) []string {
-	// This function has been separated from response generation to allow bidirectional generation later
-
     // The length of our initialisation chain needs to match the Markov order
 	tokens := []string{}
     order := brain.chain.Order
