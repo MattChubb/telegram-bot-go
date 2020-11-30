@@ -140,6 +140,8 @@ func saveBrain(brain brain.Brain, file string) {
 
 func trainFromFile(brain brain.Brain, file *os.File) {
 	scanner := bufio.NewScanner(file)
+    buffer := make([]byte, 0, 64*1024)
+    scanner.Buffer(buffer, 1024*1024)
 	for scanner.Scan() {
 		brain.Train(scanner.Text())
 	}
