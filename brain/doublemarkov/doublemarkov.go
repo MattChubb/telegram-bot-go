@@ -105,7 +105,7 @@ func (brain *Brain) generateSentence(chain *gomarkov.Chain, init []string) []str
 	}
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
-		len(tokens) < brain.lengthLimit {
+		len(tokens) < brain.lengthLimit { //TODO lengthlimit should apply to the whole generated sentence instead of the individual halves
 		next, err := chain.Generate(tokens[(len(tokens) - 1):])
 		if err != nil {
             if match, err := regexp.Match(`Unknown ngram.*`, []byte(err.Error())); !match {
