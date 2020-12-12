@@ -37,7 +37,8 @@ func main() {
 
 	//Initialise brain
 	log.Info("Initialising brain...")
-    brain := new(doublemarkov.Brain) //TODO Switch brain types via config
+    //TODO Switch brain types via config
+    brain := new(doublemarkov.Brain)
     brain.Init(*order, *tokensLengthLimit)
 	if len(*brainFilePath) > 0 {
 		log.Info("Loading brain from: ", *brainFilePath)

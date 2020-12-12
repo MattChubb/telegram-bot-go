@@ -6,7 +6,8 @@ import (
 )
 
 type Brain interface{
-    Init(o int, l int) //TODO Add a more flexible init method
+    //TODO Add a more flexible init method
+    Init(o int, l int)
     Train(d string) error
     Generate(p string) (string, error)
 }
