@@ -32,7 +32,7 @@ func trimMessage(message []string) []string {
     trimmedMessage := []string{}
     for _, word := range message {
         //TODO Only exclude self-mentions
-        if ! isStopWord(word) && word[0] != '@' {
+        if len(word) > 0 && ! isStopWord(word) && word[0] != '@' {
             trimmedMessage = append(trimmedMessage, word)
         }
     }

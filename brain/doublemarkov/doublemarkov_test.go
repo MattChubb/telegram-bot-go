@@ -65,8 +65,7 @@ func TestGenerate(t *testing.T) {
 		input    string
         expected string
 	}{
-		//TODO Trim empty strings from input
-		//{"Empty string", []string{""}},
+		{"Empty string", "", `^[(Test)|(Data)][ (test)|(data)]*$`},
 		{"1 word", "test", `^[(Test)|(Data)][ (test)|(data)]* data$`},
 		{"1 word 2", "data", `^[(Test)|(Data)][ (test)|(data)]*$`},
 		{"2 words", "test data", `^[(Test)|(Data)][ (test)|(data)]*$`},
@@ -127,8 +126,7 @@ func TestGenerateSentence(t *testing.T) {
         expected string
 	}{
 		{"Null", []string{}, `((test)|(data))`},
-		//TODO Trim empty strings from input
-		//{"Empty string", []string{""}},
+		{"Empty string", []string{""}, `^$`},
 		{"1 word", []string{"test"}, `((test)|(data))`},
 		{"1 word 2", []string{"data"}, `((test)|(data))`},
 		{"2 words", []string{"test", "data"}, `((test)|(data))`},
