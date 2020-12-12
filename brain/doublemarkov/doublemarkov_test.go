@@ -63,14 +63,15 @@ func TestGenerate(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    string
+        expected string
 	}{
 		//TODO Trim empty strings from input
 		//{"Empty string", []string{""}},
-		{"1 word", "test"},
-		{"1 word 2", "data"},
-		{"2 words", "test data"},
-		{"3 words", "test data test"},
-		{"Unknown word", "testing"},
+		{"1 word", "test", `^[(Test)|(Data)][ (test)|(data)]* data$`},
+		{"1 word 2", "data", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"2 words", "test data", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"3 words", "test data test", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"Unknown word", "testing", `^Testing$`},
 	}
 
     const length = 6
@@ -100,8 +101,11 @@ func TestGenerate(t *testing.T) {
         } else {
             t.Errorf("First letter %q not capitalised", got[0])
         }
+
+        if match, _ := regexp.Match(table.expected, []byte(got)); ! match {
+            t.Errorf("Output not as expected, got: %#v", got)
+        }
 	}
-    //TODO Test generated text using regex
 
     brain.Train("test subject data")
     got, _ := brain.Generate("subject")

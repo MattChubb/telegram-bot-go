@@ -67,11 +67,11 @@ func TestGenerate(t *testing.T) {
 	}{
 		//TODO Trim empty strings from input
 		//{"Empty string", []string{""}},
-		{"1 word", "test", `Test\s?[(test)|(data) ]?\s?data`},
-		{"1 word 2", "data", `Data\s?[(test)|(data) ]?`},
-		{"2 words", "test data", `[(Test)|(Data)]\s?[(test)|(data)\s?]*`},
-		{"3 words", "test data test", `[(Test)|(Data)]\s?[(test)|(data)\s?]*`},
-		{"Unknown word", "testing", `Testing`},
+		{"1 word", "test", `^Test[ (test)|(data)]*\s?data$`},
+		{"1 word 2", "data", `^Data\s?[ (test)|(data)]*$`},
+		{"2 words", "test data", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"3 words", "test data test", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"Unknown word", "testing", `^Testing$`},
 	}
 
     brain := new(Brain)
