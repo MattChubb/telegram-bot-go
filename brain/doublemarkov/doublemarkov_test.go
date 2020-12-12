@@ -73,8 +73,9 @@ func TestGenerate(t *testing.T) {
 		{"Unknown word", "testing"},
 	}
 
+    const length = 6
     brain := new(Brain)
-    brain.Init(1, 32)
+    brain.Init(1, length)
 
 	brain.Train("test data test data test data")
 	brain.Train("data test data test data")
@@ -87,6 +88,8 @@ func TestGenerate(t *testing.T) {
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+		} else if len(got) > length * 5 {
+			t.Errorf("Response largr than lengthlimit, got: %#v", got)
 		} else {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d characters returned)", len(got))
@@ -129,8 +132,9 @@ func TestGenerateSentence(t *testing.T) {
 		{"Unknown word", []string{"testing"}, `testing`},
 	}
 
+    const length = 6
     brain := new(Brain)
-    brain.Init(1, 32)
+    brain.Init(1, length)
 
 	brain.Train("test data test data test data")
 	brain.Train("data test data test data")
@@ -142,7 +146,7 @@ func TestGenerateSentence(t *testing.T) {
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
-		} else if len(got) > 32 {
+		} else if len(got) > length/2 {
 			t.Errorf("Response largr than lengthlimit, got: %#v", got)
 		} else if got[0] == gomarkov.StartToken {
 			t.Errorf("Start token found, got: %#v", got)
