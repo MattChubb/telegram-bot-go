@@ -1,6 +1,7 @@
 package brain
 
 import (
+    "regexp"
 	"strings"
 	"math/rand"
 )
@@ -13,8 +14,7 @@ type Brain interface{
 }
 
 func ProcessString(rawString string) []string {
-	//TODO Handle punctuation other than spaces
-	return strings.Split(strings.ToLower(rawString), " ")
+	return regexp.MustCompile(`\b`).Split(strings.ToLower(rawString), -1)
 }
 
 func ExtractSubject(message []string) []string {
