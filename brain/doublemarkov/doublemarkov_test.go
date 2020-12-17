@@ -1,13 +1,27 @@
 package doublemarkov
 
 import (
+	log "github.com/sirupsen/logrus"
 	"testing"
 	"reflect"
     "regexp"
 	"github.com/mb-14/gomarkov"
 )
 
-const defaultOrder = 1
+func TestMain(m *testing.M) {
+    //log.SetLevel(log.DebugLevel)
+    log.SetLevel(log.InfoLevel)
+    m.Run()
+}
+
+func newBrain(order int, length int) *Brain {
+    brain := new(Brain)
+    brain.Init(order, length)
+    brain.Train("test data test data test data")
+    brain.Train("data test data test data")
+    brain.Train("test data test data test data")
+    return brain
+}
 
 func TestInit(t *testing.T) {
 	tables := []struct {
@@ -22,10 +36,9 @@ func TestInit(t *testing.T) {
         {"Chain of order -1", -1, 32},
     }
 
-    brain := new(Brain)
-
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+        brain := new(Brain)
 		brain.Init(table.order, table.length)
         t.Log("Initialised without crashing")
     }
@@ -44,11 +57,11 @@ func TestTrain(t *testing.T) {
         {"Empty string", "", false},
     }
 
-    brain := new(Brain)
-    brain.Init(defaultOrder, 32)
-
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+        brain := new(Brain)
+        brain.Init(1, 32)
+
 		err := brain.Train(table.input)
 
         if !table.errors && err != nil {
@@ -79,15 +92,9 @@ func TestGenerate(t *testing.T) {
 	}
 
     const length = 32
-
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-
-        brain := new(Brain)
-        brain.Init(table.order, length)
-        brain.Train("test data test data test data")
-        brain.Train("data test data test data")
-        brain.Train("test data test data test data")
+        brain := newBrain(table.order, length)
 
         //TODO Test error handling
 		got, _ := brain.Generate(table.input)
@@ -152,12 +159,7 @@ func TestGenerateSentence(t *testing.T) {
     const length = 32
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-
-        brain := new(Brain)
-        brain.Init(table.order, length)
-        brain.Train("test data test data test data")
-        brain.Train("data test data test data")
-        brain.Train("test data test data test data")
+        brain := newBrain(table.order, length)
 
 		got := brain.generateSentence(brain.fwdChain, table.input)
 

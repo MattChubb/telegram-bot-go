@@ -6,7 +6,6 @@ import (
 	"reflect"
 )
 
-
 func TestProcessString(t *testing.T) {
 	tables := []struct {
 		testcase string

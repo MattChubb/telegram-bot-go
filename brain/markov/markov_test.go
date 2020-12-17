@@ -14,6 +14,15 @@ func TestMain(m *testing.M) {
     m.Run()
 }
 
+func newBrain(order int, length int) *Brain {
+    brain := new(Brain)
+    brain.Init(order, length)
+    brain.Train("test data test data test data")
+    brain.Train("data test data test data")
+    brain.Train("test data test data test data")
+    return brain
+}
+
 func TestInit(t *testing.T) {
 	tables := []struct {
 		testcase string
@@ -86,15 +95,10 @@ func TestGenerate(t *testing.T) {
 		{"Unknown word", "testing", 1, `^Testing$`},
 	}
 
-
+    const length = 32
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-
-        brain := new(Brain)
-        brain.Init(table.order, 32)
-        brain.Train("test data test data test data")
-        brain.Train("data test data test data")
-        brain.Train("test data test data test data")
+        brain := newBrain(table.order, length)
 
         //TODO Test error handling
 	    t.Logf("Generating from: %s", table.input)
@@ -140,20 +144,16 @@ func TestGenerateSentence(t *testing.T) {
 	}
 
 
+    const length = 32
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-
-        brain := new(Brain)
-        brain.Init(table.order, 32)
-        brain.Train("test data test data test data")
-        brain.Train("data test data test data")
-        brain.Train("test data test data test data")
+        brain := newBrain(table.order, length)
 
 		got := brain.generateSentence(table.input)
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
-		} else if len(got) > 32 {
+		} else if len(got) > length {
 			t.Errorf("Response largr than lengthlimit, got: %#v", got)
 		} else if got[0] == gomarkov.StartToken {
 			t.Errorf("Start token found, got: %#v", got)
