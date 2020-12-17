@@ -82,12 +82,19 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 	sentence := brain.generateSentence(brain.bckChain, subject)
 	end := brain.generateSentence(brain.fwdChain, subject)
 
-    sentence = sentence[1:]
+    if len(sentence) > 0 {
+        // Don't start a sentence with punctuation
+        if match, _ := regexp.Match(`\W`, []byte(sentence[len(sentence)-1])); match {
+            sentence = sentence[1:len(sentence)-1]
+        } else {
+            sentence = sentence[1:]
+        }
+    }
     reverse(sentence)
     sentence = append(sentence, end...)
     sentence[0] = strings.Title(sentence[0])
 
-    return strings.Join(sentence, " "), nil
+    return strings.Join(sentence, ""), nil
 }
 
 func (brain *Brain) generateSentence(chain *gomarkov.Chain, init []string) []string {

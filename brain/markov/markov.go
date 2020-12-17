@@ -69,7 +69,7 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 	//TODO Any other clever Markov hacks?
 	sentence := brain.generateSentence(subject)
     sentence[0] = strings.Title(sentence[0])
-    return strings.Join(sentence, " "), nil
+    return strings.Join(sentence, ""), nil
 }
 
 func (brain *Brain) generateSentence(init []string) []string {

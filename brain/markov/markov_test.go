@@ -7,6 +7,8 @@ import (
 	"github.com/mb-14/gomarkov"
 )
 
+const defaultOrder = 1
+
 func TestInit(t *testing.T) {
 	tables := []struct {
 		testcase string
@@ -43,7 +45,7 @@ func TestTrain(t *testing.T) {
     }
 
     brain := new(Brain)
-    brain.Init(1, 32)
+    brain.Init(defaultOrder, 32)
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
@@ -65,16 +67,16 @@ func TestGenerate(t *testing.T) {
 		input    string
         expected string
 	}{
-		{"Empty string", "", `^[(Test)|(Data)][ (test)|(data)]*$`},
-		{"1 word", "test", `^Test[ (test)|(data)]*\s?data$`},
-		{"1 word 2", "data", `^Data\s?[ (test)|(data)]*$`},
-		{"2 words", "test data", `^[(Test)|(Data)][ (test)|(data)]*$`},
-		{"3 words", "test data test", `^[(Test)|(Data)][ (test)|(data)]*$`},
+		{"Empty string", "", `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word", "test", `^Test[( test)|( data)]*\s?data$`},
+		{"1 word 2", "data", `^Data(( test)|( data))*$`},
+		{"2 words", "test data", `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"3 words", "test data test", `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"Unknown word", "testing", `^Testing$`},
 	}
 
     brain := new(Brain)
-    brain.Init(1, 32)
+    brain.Init(defaultOrder, 32)
 
 	brain.Train("test data test data test data")
 	brain.Train("data test data test data")
@@ -84,6 +86,7 @@ func TestGenerate(t *testing.T) {
 		t.Logf("Testing: %s", table.testcase)
         //TODO Test error handling
 		got, _ := brain.Generate(table.input)
+	    t.Logf("Got: %s", got)
 
 		if len(got) < 1 {
 			t.Errorf("prompt: %#v, got: %#v", table.input, got)
@@ -110,17 +113,17 @@ func TestGenerateSentence(t *testing.T) {
 		input    []string
         expected string
 	}{
-		{"Null", []string{}, `((test)|(data))`},
+		{"Null", []string{}, `((test)|(data)|\W)`},
 		{"Empty string", []string{""}, `^$`},
-		{"1 word", []string{"test"}, `((test)|(data))`},
-		{"1 word 2", []string{"data"}, `((test)|(data))`},
-		{"2 words", []string{"test", "data"}, `((test)|(data))`},
-		{"3 words", []string{"test", "data", "test"}, `((test)|(data))`},
+		{"1 word", []string{"test"}, `((test)|(data)|\W)`},
+		{"1 word 2", []string{"data"}, `((test)|(data)|\W)`},
+		{"2 words", []string{"test", "data"}, `((test)|(data)|\W)`},
+		{"3 words", []string{"test", "data", "test"}, `((test)|(data)|\W)`},
 		{"Unknown word", []string{"testing"}, `testing`},
 	}
 
     brain := new(Brain)
-    brain.Init(1, 32)
+    brain.Init(defaultOrder, 32)
 
 	brain.Train("test data test data test data")
 	brain.Train("data test data test data")
@@ -159,7 +162,7 @@ func TestMarshalJSON(t *testing.T) {
 		{"Empty chain", 2, []string{}, `{"Chain":{"int":2,"spool_map":{},"freq_mat":{}},"LengthLimit":31}`, false},
 		{"Empty chain, order 1", 1, []string{}, `{"Chain":{"int":1,"spool_map":{},"freq_mat":{}},"LengthLimit":31}`, false},
 		{"Trained once", 1, []string{"test"}, `{"Chain":{"int":1,"spool_map":{"$":0,"^":2,"test":1},"freq_mat":{"0":{"1":1},"1":{"2":1}}},"LengthLimit":31}`, false},
-		{"Trained on more data", 1, []string{"test data", "test data", "test node"}, `{"Chain":{"int":1,"spool_map":{"$":0,"^":3,"data":2,"node":4,"test":1},"freq_mat":{"0":{"1":3},"1":{"2":2,"4":1},"2":{"3":2},"4":{"3":1}}},"LengthLimit":31}`, false},
+		{"Trained on more data", 1, []string{"test data", "test data", "test node"}, `{"Chain":{"int":1,"spool_map":{" ":2,"$":0,"^":4,"data":3,"node":5,"test":1},"freq_mat":{"0":{"1":3},"1":{"2":3},"2":{"3":2,"5":1},"3":{"4":2},"5":{"4":1}}},"LengthLimit":31}`, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
