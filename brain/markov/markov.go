@@ -61,7 +61,10 @@ func (brain *Brain) Train(data string) error {
 }
 
 func (brain *Brain) Generate(prompt string) (string, error) {
+    log.Debug("Input: ", prompt)
     processedPrompt := common.ProcessString(prompt)
+    log.Debug("Processed into: ", processedPrompt)
+
 	subject := []string{}
 	if len(processedPrompt) > 0 {
 		subject = common.ExtractSubject(processedPrompt)
@@ -73,26 +76,18 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 }
 
 func (brain *Brain) generateSentence(init []string) []string {
-    // The length of our initialisation chain needs to match the Markov order
-	tokens := []string{}
+    log.Debug("Input: ", init)
     order := brain.chain.Order
-	if len(init) < order {
-		for i := 0; i < order; i++ {
-			tokens = append(tokens, gomarkov.StartToken)
-		}
-		tokens = append(tokens, init...)
-	} else if len(init) > order {
-		tokens = init[:order]
-	} else {
-		tokens = init
-	}
+    tokens := generateInitialToken(init, order)
+    log.Debug("Initial token: ", tokens)
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
 		len(tokens) < brain.lengthLimit {
-		next, err := brain.chain.Generate(tokens[(len(tokens) - 1):])
+		next, err := brain.chain.Generate(tokens[(len(tokens) - order):])
 		if err != nil {
-            if match, err := regexp.Match(`Unknown ngram.*`, []byte(err.Error())); !match {
-			    log.Fatal(err)
+            errormsg := err.Error()
+            if match, _ := regexp.Match(`Unknown ngram.*`, []byte(errormsg)); !match {
+			    log.Fatal("Error generating from Markov chain: ", errormsg)
             }
 		}
 
@@ -106,8 +101,25 @@ func (brain *Brain) generateSentence(init []string) []string {
 
 	//Don't include the start or end token in our response
 	tokens = tokens[:len(tokens)-1]
-	if tokens[0] == gomarkov.StartToken {
+	for tokens[0] == gomarkov.StartToken {
 		tokens = tokens[1:]
 	}
 	return tokens
+}
+
+func generateInitialToken(init []string, order int) []string {
+	tokens := []string{}
+    // The length of our initialisation chain needs to match the Markov order
+	if len(init) < order {
+		for i := 0; i < order - len(init) ; i++ {
+			tokens = append(tokens, gomarkov.StartToken)
+		}
+		tokens = append(tokens, init...)
+	} else if len(init) > order {
+		tokens = init[:order]
+	} else {
+		tokens = init
+	}
+
+    return tokens
 }

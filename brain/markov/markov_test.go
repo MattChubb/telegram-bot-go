@@ -1,12 +1,18 @@
 package markov
 
 import (
+	log "github.com/sirupsen/logrus"
 	"testing"
 	"reflect"
     "regexp"
 	"github.com/mb-14/gomarkov"
 )
 
+func TestMain(m *testing.M) {
+    //log.SetLevel(log.DebugLevel)
+    log.SetLevel(log.InfoLevel)
+    m.Run()
+}
 const defaultOrder = 1
 
 func TestInit(t *testing.T) {
@@ -35,20 +41,23 @@ func TestTrain(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    string
+        order    int
         errors   bool
 	}{
-        {"One word", "word", false},
-        {"Two words", "two words", false},
-        {"Two words with punctuation ", "two, words", false},
-        {"Word and number", "1 one", false},
-        {"Empty string", "", false},
+        {"One word, order 1", "word", 1, false},
+        {"One word, order 2", "word", 2, false},
+        {"Two words", "two words", 2, false},
+        {"Two words with punctuation ", "two, words", 2, false},
+        {"Word and number", "1 one", 2, false},
+        {"Empty string, order 1", "", 1, false},
+        {"Empty string, order 2", "", 2, false},
     }
-
-    brain := new(Brain)
-    brain.Init(defaultOrder, 32)
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+
+        brain := new(Brain)
+        brain.Init(table.order, 32)
 		err := brain.Train(table.input)
 
         if !table.errors && err != nil {
@@ -65,26 +74,31 @@ func TestGenerate(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    string
+        order    int
         expected string
 	}{
-		{"Empty string", "", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"1 word", "test", `^Test[( test)|( data)]*\s?data$`},
-		{"1 word 2", "data", `^Data(( test)|( data))*$`},
-		{"2 words", "test data", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"3 words", "test data test", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"Unknown word", "testing", `^Testing$`},
+		{"Empty string, order 1", "", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"Empty string, order 2", "", 2, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word, order 1", "test", 1, `^Test[( test)|( data)]*\s?data$`},
+		{"1 word, order 2", "test", 2, `^Test[( test)|( data)]*\s?data$`},
+		{"1 word 2", "data", 1, `^Data(( test)|( data))*$`},
+		{"2 words", "test data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"3 words", "test data test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"Unknown word", "testing", 1, `^Testing$`},
 	}
 
-    brain := new(Brain)
-    brain.Init(defaultOrder, 32)
-
-	brain.Train("test data test data test data")
-	brain.Train("data test data test data")
-	brain.Train("test data test data test data")
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+
+        brain := new(Brain)
+        brain.Init(table.order, 32)
+        brain.Train("test data test data test data")
+        brain.Train("data test data test data")
+        brain.Train("test data test data test data")
+
         //TODO Test error handling
+	    t.Logf("Generating from: %s", table.input)
 		got, _ := brain.Generate(table.input)
 	    t.Logf("Got: %s", got)
 
@@ -111,26 +125,31 @@ func TestGenerateSentence(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    []string
+        order    int
         expected string
 	}{
-		{"Null", []string{}, `((test)|(data)|\W)`},
-		{"Empty string", []string{""}, `^$`},
-		{"1 word", []string{"test"}, `((test)|(data)|\W)`},
-		{"1 word 2", []string{"data"}, `((test)|(data)|\W)`},
-		{"2 words", []string{"test", "data"}, `((test)|(data)|\W)`},
-		{"3 words", []string{"test", "data", "test"}, `((test)|(data)|\W)`},
-		{"Unknown word", []string{"testing"}, `testing`},
+		{"Null, order 1", []string{}, 1, `((test)|(data)|\W)`},
+		{"Null, order 2", []string{}, 2, `((test)|(data)|\W)`},
+		{"Empty string, order 1", []string{""}, 1, `^$`},
+		{"Empty string, order 2", []string{""}, 2, `^$`},
+		{"1 word", []string{"test"}, 1, `((test)|(data)|\W)`},
+		{"1 word 2", []string{"data"}, 2, `((test)|(data)|\W)`},
+		{"2 words, order 1", []string{"test", "data"}, 1, `((test)|(data)|\W)`},
+		{"2 words, order 2", []string{"test", "data"}, 2, `((test)|(data)|\W)`},
+		{"3 words", []string{"test", "data", "test"}, 2, `((test)|(data)|\W)`},
+		{"Unknown word", []string{"testing"}, 2, `testing`},
 	}
 
-    brain := new(Brain)
-    brain.Init(defaultOrder, 32)
-
-	brain.Train("test data test data test data")
-	brain.Train("data test data test data")
-	brain.Train("test data test data test data")
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+
+        brain := new(Brain)
+        brain.Init(table.order, 32)
+        brain.Train("test data test data test data")
+        brain.Train("data test data test data")
+        brain.Train("test data test data test data")
+
 		got := brain.generateSentence(table.input)
 
 		if len(got) < 1 {
@@ -220,4 +239,35 @@ func TestUnmarshalJSON(t *testing.T) {
             }
 		})
 	}
+}
+
+func TestGenerateInitialToken(t *testing.T) {
+	tables := []struct {
+		testcase string
+		input    []string
+        order    int
+        expected []string
+	}{
+		{"Null, order 1", []string{}, 1, []string{"$"}},
+		{"Null, order 2", []string{}, 2, []string{"$", "$"}},
+		{"Empty string, order 1", []string{""}, 1, []string{""}},
+		{"Empty string, order 2", []string{""}, 2, []string{"$", ""}},
+		{"1 word", []string{"test"}, 1, []string{"test"}},
+		{"1 word 2", []string{"data"}, 2, []string{"$", "data"}},
+		{"1 word, order 3", []string{"data"}, 3, []string{"$", "$", "data"}},
+		{"2 words, order 1", []string{"test", "data"}, 1, []string{"test"}},
+		{"2 words, order 2", []string{"test", "data"}, 2, []string{"test", "data"}},
+		{"3 words", []string{"test", "data", "test"}, 2, []string{"test", "data"}},
+	}
+
+	for _, table := range tables {
+		t.Logf("Testing: %s", table.testcase)
+        got := generateInitialToken(table.input, table.order)
+
+		if !reflect.DeepEqual(got, table.expected) {
+			t.Errorf("Output not as expected, expected: %#v, got: %#v", table.expected, got)
+		} else {
+			t.Log("Passed")
+		}
+    }
 }
