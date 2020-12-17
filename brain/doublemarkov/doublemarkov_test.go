@@ -17,9 +17,9 @@ func TestMain(m *testing.M) {
 func newBrain(order int, length int) *Brain {
     brain := new(Brain)
     brain.Init(order, length)
-    brain.Train("test data test data test data")
-    brain.Train("data test data test data")
-    brain.Train("test data test data test data")
+    brain.Train("test data test data")
+    brain.Train("data test data")
+    brain.Train("test data")
     return brain
 }
 
