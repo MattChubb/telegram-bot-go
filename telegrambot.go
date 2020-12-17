@@ -20,7 +20,7 @@ func main() {
 	brainFilePath := flag.String("brainfile", "", "Saved JSON brain file")
 	chattiness := flag.Float64("chattiness", 0.1, "Chattiness (0-1, how often to respond unprompted)")
 	debug := flag.Bool("debug", false, "Debug logging")
-	order := flag.Int("order", 1, "Markov brain order. Use caution with values above 2")
+	order := flag.Int("order", 2, "Markov brain order. Use caution with values above 2")
 	saveEvery := flag.Int("saveevery", 100, "Save every N messages")
 	sourceDir := flag.String("sourcedir", "", "Source directory for training data")
 	tokensLengthLimit := flag.Int("lengthlimit", 32, "Limit response length")
