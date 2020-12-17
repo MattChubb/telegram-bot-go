@@ -65,26 +65,30 @@ func TestGenerate(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    string
+        order    int
         expected string
 	}{
-		{"Empty string", "", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"1 word", "test", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"1 word 2", "data", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"2 words", "test data", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"3 words", "test data test", `^[(Test)|(Data)][( test)|( data)]*$`},
-		{"Unknown word", "testing", `^Testing$`},
+		{"Empty string, order 1", "", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"Empty string, order 2", "", 2, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word, order 1", "test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word, order 2", "test", 2, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word 2", "data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"2 words", "test data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"3 words", "test data test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"Unknown word", "testing", 1, `^Testing$`},
 	}
 
-    const length = 7
-    brain := new(Brain)
-    brain.Init(defaultOrder, length)
-
-	brain.Train("test data test data test data")
-	brain.Train("data test data test data")
-	brain.Train("test data test data test data")
+    const length = 32
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+
+        brain := new(Brain)
+        brain.Init(table.order, length)
+        brain.Train("test data test data test data")
+        brain.Train("data test data test data")
+        brain.Train("test data test data test data")
+
         //TODO Test error handling
 		got, _ := brain.Generate(table.input)
 
@@ -108,6 +112,11 @@ func TestGenerate(t *testing.T) {
         }
 	}
 
+    brain := new(Brain)
+    brain.Init(1, length)
+    brain.Train("test data test data test data")
+    brain.Train("data test data test data")
+    brain.Train("test data test data test data")
     brain.Train("test subject data")
     got, _ := brain.Generate("subject")
     if got[0:7] == "Subject" {
@@ -125,27 +134,31 @@ func TestGenerateSentence(t *testing.T) {
 	tables := []struct {
 		testcase string
 		input    []string
+        order    int
         expected string
 	}{
-		{"Null", []string{}, `((test)|(data)|\W)`},
-		{"Empty string", []string{""}, `^$`},
-		{"1 word", []string{"test"}, `((test)|(data)|\W)`},
-		{"1 word 2", []string{"data"}, `((test)|(data)|\W)`},
-		{"2 words", []string{"test", "data"}, `((test)|(data)|\W)`},
-		{"3 words", []string{"test", "data", "test"}, `((test)|(data)|\W)`},
-		{"Unknown word", []string{"testing"}, `testing`},
+		{"Null, order 1", []string{}, 1, `((test)|(data)|\W)`},
+		{"Null, order 2", []string{}, 2, `((test)|(data)|\W)`},
+		{"Empty string, order 1", []string{""}, 1, `^$`},
+		{"Empty string, order 2", []string{""}, 2, `^$`},
+		{"1 word", []string{"test"}, 1, `((test)|(data)|\W)`},
+		{"1 word 2", []string{"data"}, 2, `((test)|(data)|\W)`},
+		{"2 words, order 1", []string{"test", "data"}, 1, `((test)|(data)|\W)`},
+		{"2 words, order 2", []string{"test", "data"}, 2, `((test)|(data)|\W)`},
+		{"3 words", []string{"test", "data", "test"}, 2, `((test)|(data)|\W)`},
+		{"Unknown word", []string{"testing"}, 2, `testing`},
 	}
 
-    const length = 6
-    brain := new(Brain)
-    brain.Init(defaultOrder, length)
-
-	brain.Train("test data test data test data")
-	brain.Train("data test data test data")
-	brain.Train("test data test data test data")
-
+    const length = 32
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
+
+        brain := new(Brain)
+        brain.Init(table.order, length)
+        brain.Train("test data test data test data")
+        brain.Train("data test data test data")
+        brain.Train("test data test data test data")
+
 		got := brain.generateSentence(brain.fwdChain, table.input)
 
 		if len(got) < 1 {

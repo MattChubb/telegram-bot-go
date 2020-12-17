@@ -13,7 +13,6 @@ func TestMain(m *testing.M) {
     log.SetLevel(log.InfoLevel)
     m.Run()
 }
-const defaultOrder = 1
 
 func TestInit(t *testing.T) {
 	tables := []struct {
@@ -262,7 +261,7 @@ func TestGenerateInitialToken(t *testing.T) {
 
 	for _, table := range tables {
 		t.Logf("Testing: %s", table.testcase)
-        got := generateInitialToken(table.input, table.order)
+        got := GenerateInitialToken(table.input, table.order)
 
 		if !reflect.DeepEqual(got, table.expected) {
 			t.Errorf("Output not as expected, expected: %#v, got: %#v", table.expected, got)

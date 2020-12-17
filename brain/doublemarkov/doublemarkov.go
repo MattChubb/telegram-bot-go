@@ -3,12 +3,12 @@ package doublemarkov
 import (
 	"encoding/json"
 	"github.com/mb-14/gomarkov"
-    "github.com/TwinProduction/go-away"
 	log "github.com/sirupsen/logrus"
     "math"
     "regexp"
 	"strings"
     common "github.com/MattChubb/telegram-bot-go/brain"
+    markov "github.com/MattChubb/telegram-bot-go/brain/markov"
 )
 
 //TODO Use a bi-directional markov chain instead of 2 separate chains to lower memory footprint
@@ -98,42 +98,19 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 }
 
 func (brain *Brain) generateSentence(chain *gomarkov.Chain, init []string) []string {
-    // The length of our initialisation chain needs to match the Markov order
-	tokens := []string{}
+    log.Debug("Input: ", init)
     order := chain.Order
-	if len(init) < order {
-		for i := 0; i < order; i++ {
-			tokens = append(tokens, gomarkov.StartToken)
-		}
-		tokens = append(tokens, init...)
-	} else if len(init) > order {
-		tokens = init[:order]
-	} else {
-		tokens = init
-	}
+    tokens := markov.GenerateInitialToken(init, order)
+    log.Debug("Initial token: ", tokens)
 
-	for tokens[len(tokens)-1] != gomarkov.EndToken && len(tokens) < int(math.Round(float64(brain.lengthLimit)/2)) {
-		next, err := chain.Generate(tokens[(len(tokens) - 1):])
-		if err != nil {
-            if match, err := regexp.Match(`Unknown ngram.*`, []byte(err.Error())); !match {
-			    log.Fatal(err)
-            }
-		}
-
-        //TODO Implement a replacement wordfilter instead of just removing profanity
-		if len(next) > 0 && ! goaway.IsProfane(next) {
-			tokens = append(tokens, next)
-		} else {
-			tokens = append(tokens, gomarkov.EndToken)
-		}
+	for tokens[len(tokens)-1] != gomarkov.EndToken &&
+        len(tokens) < int(math.Round(float64(brain.lengthLimit)/2)) {
+        next := markov.GenerateNextToken(chain, tokens)
+        tokens = append(tokens, next)
 	}
 
 	//Don't include the start or end token in our response
-	tokens = tokens[:len(tokens)-1]
-	if tokens[0] == gomarkov.StartToken {
-		tokens = tokens[1:]
-	}
-	return tokens
+    return markov.TrimTokens(tokens)
 }
 
 func reverse(ss []string) {

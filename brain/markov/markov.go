@@ -78,36 +78,22 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 func (brain *Brain) generateSentence(init []string) []string {
     log.Debug("Input: ", init)
     order := brain.chain.Order
-    tokens := generateInitialToken(init, order)
+    tokens := GenerateInitialToken(init, order)
     log.Debug("Initial token: ", tokens)
 
 	for tokens[len(tokens)-1] != gomarkov.EndToken &&
 		len(tokens) < brain.lengthLimit {
-		next, err := brain.chain.Generate(tokens[(len(tokens) - order):])
-		if err != nil {
-            errormsg := err.Error()
-            if match, _ := regexp.Match(`Unknown ngram.*`, []byte(errormsg)); !match {
-			    log.Fatal("Error generating from Markov chain: ", errormsg)
-            }
-		}
-
-        //TODO Implement a replacement wordfilter instead of just removing profanity
-		if len(next) > 0 && ! goaway.IsProfane(next) {
-			tokens = append(tokens, next)
-		} else {
-			tokens = append(tokens, gomarkov.EndToken)
-		}
+        next := GenerateNextToken(brain.chain, tokens)
+        tokens = append(tokens, next)
 	}
 
 	//Don't include the start or end token in our response
-	tokens = tokens[:len(tokens)-1]
-	for tokens[0] == gomarkov.StartToken {
-		tokens = tokens[1:]
-	}
-	return tokens
+    return TrimTokens(tokens)
 }
 
-func generateInitialToken(init []string, order int) []string {
+//Exported so that DoubleMarkov can also use it
+//It could also go in brain, but it's markov-specific
+func GenerateInitialToken(init []string, order int) []string {
 	tokens := []string{}
     // The length of our initialisation chain needs to match the Markov order
 	if len(init) < order {
@@ -122,4 +108,29 @@ func generateInitialToken(init []string, order int) []string {
 	}
 
     return tokens
+}
+
+func TrimTokens(tokens []string) []string {
+	tokens = tokens[:len(tokens)-1]
+	for tokens[0] == gomarkov.StartToken {
+		tokens = tokens[1:]
+	}
+	return tokens
+}
+
+func GenerateNextToken(chain *gomarkov.Chain, tokens []string) string {
+    next, err := chain.Generate(tokens[(len(tokens) - chain.Order):])
+    if err != nil {
+        errormsg := err.Error()
+        if match, _ := regexp.Match(`Unknown ngram.*`, []byte(errormsg)); !match {
+            log.Fatal("Error generating from Markov chain: ", errormsg)
+        }
+    }
+
+    //TODO Implement a replacement wordfilter instead of just removing profanity
+    if len(next) > 0 && ! goaway.IsProfane(next) {
+        return next
+    } else {
+        return gomarkov.EndToken
+    }
 }
