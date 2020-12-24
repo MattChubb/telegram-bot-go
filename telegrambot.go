@@ -53,6 +53,7 @@ func main() {
 	//TODO Allow specifying a list of files instead of a directory
 	if len(*sourceDir) > 0 {
         //TODO Split training from source files into its own method
+		//TODO Add debug logging
 		log.Info("Opening source data...")
 		source_files, err := ioutil.ReadDir(*sourceDir)
 		if err != nil {
@@ -69,6 +70,7 @@ func main() {
 				log.Fatal(err)
 			}
 			trainFromFile(brain, sourceFile)
+			//TODO Close file after reading!
 		}
 
 		if len(*brainFilePath) > 0 {
