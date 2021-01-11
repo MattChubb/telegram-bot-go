@@ -103,7 +103,8 @@ func main() {
 	log.Info("Adding brain to bot...")
 	mNumber := 0
 	bot.Handle(telebot.OnText, func(m *telebot.Message) {
-        //TODO Split handler into its own method
+        //The handler is very tightly coupled with the rest of the bots
+        //implementation, and so not currently worth separating
 		log.Debug("Received message: " + m.Text)
 
 		//Train on input (Ensures we always have a response for new words)
