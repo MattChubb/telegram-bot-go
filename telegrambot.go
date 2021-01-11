@@ -71,7 +71,10 @@ func main() {
 				log.Fatal(err)
 			}
 			trainFromFile(brain, sourceFile)
-			//TODO Close file after reading!
+            err = sourceFile.Close()
+			if err != nil {
+				log.Fatal(err)
+			}
 		}
 
 		if len(*brainFilePath) > 0 {
