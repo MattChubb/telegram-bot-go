@@ -55,7 +55,6 @@ func main() {
         //TODO Split training from source files into its own method
 		//TODO Add debug logging
 		log.Info("Opening source data...")
-		//TODO Is there any advantage to using ioutil over os.Readdir?
 		source_files, err := ioutil.ReadDir(*sourceDir)
 		if err != nil {
 			log.Fatal(err)
@@ -151,6 +150,9 @@ func trainFromFile(brain brain.Brain, file *os.File) {
     buffer := make([]byte, 0, 64*1024)
     scanner.Buffer(buffer, 1024*1024)
 	for scanner.Scan() {
+        if scanner.Err() != nil {
+            log.Fatal(scanner.Err())
+        }
 		brain.Train(scanner.Text())
 	}
 	if err := scanner.Err(); err != nil {
