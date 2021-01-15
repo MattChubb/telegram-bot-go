@@ -34,6 +34,28 @@ func TestProcessString(t *testing.T) {
 	}
 }
 
+func TestExtractSubject(t *testing.T) {
+	tables := []struct {
+		testcase string
+		input    []string
+		expected []string
+	}{
+		{"1 uncommon word", []string{"test"}, []string{"test"}},
+		{"1 uncommon word, 1 common word", []string{"the", "test"}, []string{"test"}},
+		{"Mention", []string{"test", "@self"}, []string{"test"}},
+	}
+
+	for _, table := range tables {
+		t.Logf("Testing: %s", table.testcase)
+		got := ExtractSubject(table.input)
+		if !reflect.DeepEqual(got, table.expected) {
+			t.Errorf("expected: %#v, got: %#v", table.expected, got)
+		} else {
+			t.Log("Passed")
+		}
+	}
+}
+
 func TestTrimMessage(t *testing.T){
 	tables := []struct {
 		testcase string
