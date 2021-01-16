@@ -82,7 +82,7 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 	sentence := brain.generateSentence(brain.bckChain, subject)
 	end := brain.generateSentence(brain.fwdChain, subject)
 
-    if len(sentence) >= brain.bckChain.Order {
+    if len(sentence) > brain.bckChain.Order {
         // Don't start a sentence with punctuation
         if match, _ := regexp.Match(`\W`, []byte(sentence[len(sentence)-1])); match {
             sentence = sentence[brain.bckChain.Order:len(sentence)-1]
