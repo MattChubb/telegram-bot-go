@@ -89,6 +89,9 @@ func (brain *Brain) Generate(prompt string) (string, error) {
         } else {
             sentence = sentence[brain.bckChain.Order:]
         }
+    } else {
+        //Sentence is just the subject, which is duplicated in the fwd chain
+        sentence = []string{}
     }
     reverse(sentence)
     sentence = append(sentence, end...)

@@ -89,6 +89,7 @@ func TestGenerate(t *testing.T) {
 		{"2 words", "test data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"3 words", "test data test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"Unknown word", "testing", 1, `^Testing$`},
+		{"Unknown word, order 2", "testing", 2, `^Testing$`},
 	}
 
     const length = 32
@@ -130,7 +131,9 @@ func TestGenerate(t *testing.T) {
         t.Errorf("Nothing generated before subject, got: %#v", got)
     } else if got[len(got)-7:len(got)] == "subject" {
         t.Errorf("Nothing generated after subject, got: %#v", got)
-    } else if match, _ := regexp.Match(`subject subject`, []byte(got)); match {
+    } else if match, _ := regexp.Match(`ubject subject`, []byte(got)); match {
+        t.Errorf("Subject generated twice, got: %#v", got)
+    } else if match, _ := regexp.Match(`ubjectsubject`, []byte(got)); match {
         t.Errorf("Subject generated twice, got: %#v", got)
     } else {
         t.Logf("Passed (text generated either side of subject): %#v", got[len(got)-7:len(got)])
