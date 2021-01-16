@@ -67,7 +67,7 @@ func (brain *Brain) Generate(prompt string) (string, error) {
 
 	subject := []string{}
 	if len(processedPrompt) > 0 {
-		subject = common.ExtractSubject(processedPrompt)
+		subject = common.ExtractSubject(processedPrompt, brain.chain.Order)
 	}
 	//TODO Any other clever Markov hacks?
 	sentence := brain.generateSentence(subject)

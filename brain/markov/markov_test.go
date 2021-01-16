@@ -69,9 +69,9 @@ func TestTrain(t *testing.T) {
 		err := brain.Train(table.input)
 
         if !table.errors && err != nil {
-            t.Errorf("Expected no errors, got %#v", err)
+            t.Errorf("FAIL, expected no errors, got %#v", err)
         } else if table.errors && err == nil {
-            t.Errorf("Expected errors, but got none")
+            t.Errorf("FAIL, expected errors, but got none")
         } else {
             t.Log("Initialised without crashing")
         }
@@ -106,7 +106,7 @@ func TestGenerate(t *testing.T) {
 	    t.Logf("Got: %s", got)
 
 		if len(got) < 1 {
-			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+			t.Errorf("FAIL, prompt: %#v, got: %#v", table.input, got)
 		} else {
 			//t.Logf("Got: %#v", got)
 			t.Logf("Passed (%d characters returned)", len(got))
@@ -115,11 +115,11 @@ func TestGenerate(t *testing.T) {
         if got[0] == 'T' || got[0] == 'D' {
             t.Logf("Passed (First letter %q capitalised)", got[0])
         } else {
-            t.Errorf("First letter %q not capitalised", got[0])
+            t.Errorf("FAIL, first letter %q not capitalised", got[0])
         }
 
         if match, _ := regexp.Match(table.expected, []byte(got)); ! match {
-            t.Errorf("Output not as expected, got: %#v", got)
+            t.Errorf("FAIL, output not as expected, got: %#v", got)
         }
 	}
 }
@@ -152,18 +152,18 @@ func TestGenerateSentence(t *testing.T) {
 		got := brain.generateSentence(table.input)
 
 		if len(got) < 1 {
-			t.Errorf("prompt: %#v, got: %#v", table.input, got)
+			t.Errorf("FAIL, prompt: %#v, got: %#v", table.input, got)
 		} else if len(got) > length {
-			t.Errorf("Response largr than lengthlimit, got: %#v", got)
+			t.Errorf("FAIL, response largr than lengthlimit, got: %#v", got)
 		} else if got[0] == gomarkov.StartToken {
-			t.Errorf("Start token found, got: %#v", got)
+			t.Errorf("FAIL, start token found, got: %#v", got)
 		} else if got[len(got)-1] == gomarkov.EndToken {
-			t.Errorf("End token found, got: %#v", got)
+			t.Errorf("FAIL, end token found, got: %#v", got)
 		}
 
         for _, word := range got {
             if match, _ := regexp.Match(table.expected, []byte(word)); ! match {
-                t.Errorf("Output not as expected, got: %#v", got)
+                t.Errorf("FAIL, output not as expected, got: %#v", got)
             }
         }
 	}
@@ -192,11 +192,11 @@ func TestMarshalJSON(t *testing.T) {
 
 			got, err := brain.MarshalJSON()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("Brain.MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("FAIL, brain.MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 			if !reflect.DeepEqual(string(got), tt.want) {
-				t.Errorf("Brain.MarshalJSON() = %v, want %v", string(got), tt.want)
+				t.Errorf("FAIL, brain.MarshalJSON() = %v, want %v", string(got), tt.want)
 			}
 		})
 	}
@@ -217,7 +217,7 @@ func TestUnmarshalJSON(t *testing.T) {
             brain := new(Brain)
 
 			if err := brain.UnmarshalJSON(tt.args); (err != nil) != tt.wantErr {
-				t.Errorf("Brain.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("FAIL, brain.UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
             } else {
                 t.Log("Successfully unmarshalled json")
 			}
@@ -225,13 +225,13 @@ func TestUnmarshalJSON(t *testing.T) {
             if !tt.wantErr {
                 //An error unmarshalling means we don't have a brain to train or generate from
                 if err := brain.Train("test"); (err != nil) != tt.wantErr {
-                    t.Errorf("Brain.Train() error = %v, wantErr %v", err, tt.wantErr)
+                    t.Errorf("FAIL, brain.Train() error = %v, wantErr %v", err, tt.wantErr)
                 } else {
                     t.Log("Successfully trained unmarshalled brain")
                 }
 
                 if _, err := brain.Generate("test"); (err != nil) != tt.wantErr {
-                    t.Errorf("Brain.Generate() error = %v, wantErr %v", err, tt.wantErr)
+                    t.Errorf("FAIL, brain.Generate() error = %v, wantErr %v", err, tt.wantErr)
                 } else {
                     t.Log("Successfully generated using trained unmarshalled brain")
                 }
@@ -264,7 +264,7 @@ func TestGenerateInitialToken(t *testing.T) {
         got := GenerateInitialToken(table.input, table.order)
 
 		if !reflect.DeepEqual(got, table.expected) {
-			t.Errorf("Output not as expected, expected: %#v, got: %#v", table.expected, got)
+			t.Errorf("FAIL, output not as expected, expected: %#v, got: %#v", table.expected, got)
 		} else {
 			t.Log("Passed")
 		}

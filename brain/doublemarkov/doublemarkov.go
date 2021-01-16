@@ -76,18 +76,18 @@ func (brain *Brain) Generate(prompt string) (string, error) {
     processedPrompt := common.ProcessString(prompt)
 	subject := []string{}
 	if len(processedPrompt) > 0 {
-		subject = common.ExtractSubject(processedPrompt)
+		subject = common.ExtractSubject(processedPrompt, brain.fwdChain.Order)
 	}
 	//TODO Any other clever Markov hacks?
 	sentence := brain.generateSentence(brain.bckChain, subject)
 	end := brain.generateSentence(brain.fwdChain, subject)
 
-    if len(sentence) > 0 {
+    if len(sentence) >= brain.bckChain.Order {
         // Don't start a sentence with punctuation
         if match, _ := regexp.Match(`\W`, []byte(sentence[len(sentence)-1])); match {
-            sentence = sentence[1:len(sentence)-1]
+            sentence = sentence[brain.bckChain.Order:len(sentence)-1]
         } else {
-            sentence = sentence[1:]
+            sentence = sentence[brain.bckChain.Order:]
         }
     }
     reverse(sentence)

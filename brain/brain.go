@@ -17,15 +17,41 @@ func ProcessString(rawString string) []string {
 	return regexp.MustCompile(`\b`).Split(strings.ToLower(rawString), -1)
 }
 
-func ExtractSubject(message []string) []string {
-    //TODO Do something cleverer with subject extraction
-    //TODO Extract more than one word as a subject
+func ExtractSubject(message []string, length int) []string {
     trimmedMessage := trimMessage(message)
-    subject := []string{}
+    var subject string
     if len(trimmedMessage) > 0 {
-        subject = append(subject, trimmedMessage[rand.Intn(len(trimmedMessage))])
+        subject = trimmedMessage[rand.Intn(len(trimmedMessage))]
+    } else {
+        //If there's nothing but stopwords, return nothing
+        return []string{}
     }
-    return subject
+
+    if length == 1 {
+        //Short-circuit as we don't need to pad
+        return []string{subject}
+    }
+
+    subjectWords := []string{}
+    for _, word := range message {
+        subjectWords = append(subjectWords, word)
+        if len(subjectWords) > length {
+            //We want the main subject word to be roughly halfway through the
+            //subject words, or at the beginning if that's not possible
+
+            if subjectWords[0] == subject {
+                subjectWords = subjectWords[:len(subjectWords)-1]
+                break
+            }
+
+            subjectWords = subjectWords[1:]
+            if subjectWords[length/2] == subject {
+                break
+            }
+        }
+    }
+
+    return subjectWords
 }
 
 func trimMessage(message []string) []string {
