@@ -1,4 +1,7 @@
 package main
+//TODO Document this mess
+//TODO Dockerise this mess
+//TODO Benchmark this mess
 
 import (
 	"bufio"
