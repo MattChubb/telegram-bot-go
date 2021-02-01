@@ -85,6 +85,7 @@ func TestGenerate(t *testing.T) {
 		{"Empty string, order 2", "", 2, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"1 word, order 1", "test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"1 word, order 2", "test", 2, `^[(Test)|(Data)][( test)|( data)]*$`},
+		{"1 word, order 2, no double space", "test", 2, `[^\s{2}]`},
 		{"1 word 2", "data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"2 words", "test data", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
 		{"3 words", "test data test", 1, `^[(Test)|(Data)][( test)|( data)]*$`},
@@ -94,20 +95,23 @@ func TestGenerate(t *testing.T) {
 
     const length = 32
 	for _, table := range tables {
-		t.Logf("Testing: %s", table.testcase)
+        t.Logf("Testing: %s", table.testcase)
         brain := newBrain(table.order, length)
+        brain.Train("test data test data test data")
+        brain.Train("data test data test data")
+        brain.Train("test data test data test data")
 
         //TODO Test error handling
-		got, _ := brain.Generate(table.input)
+        got, _ := brain.Generate(table.input)
 
-		if len(got) < 1 {
-			t.Errorf("prompt: %#v, got: %#v", table.input, got)
-		} else if len(got) > length * 5 {
-			t.Errorf("Response largr than lengthlimit, got: %#v", got)
-		} else {
-			//t.Logf("Got: %#v", got)
-			t.Logf("Passed (%d characters returned)", len(got))
-		}
+        if len(got) < 1 {
+            t.Errorf("prompt: %#v, got: %#v", table.input, got)
+        } else if len(got) > length * 5 {
+            t.Errorf("Response largr than lengthlimit, got: %#v", got)
+        } else {
+            //t.Logf("Got: %#v", got)
+            t.Logf("Passed (%d characters returned)", len(got))
+        }
 
         if got[0] == 'T' || got[0] == 'D' {
             t.Logf("Passed (First letter %q capitalised)", got[0])
@@ -135,6 +139,8 @@ func TestGenerate(t *testing.T) {
         t.Errorf("Subject generated twice, got: %#v", got)
     } else if match, _ := regexp.Match(`ubjectsubject`, []byte(got)); match {
         t.Errorf("Subject generated twice, got: %#v", got)
+    } else if match, _ := regexp.Match(`\s{2}`, []byte(got)); match {
+        t.Errorf("Double spacing, got: %#v", got)
     } else {
         t.Logf("Passed (text generated either side of subject): %#v", got[len(got)-7:len(got)])
     }
