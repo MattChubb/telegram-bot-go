@@ -6,6 +6,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+    "fmt"
 	"flag"
 	"gopkg.in/tucnak/telebot.v2"
 	"io/ioutil"
@@ -56,31 +57,41 @@ func main() {
 	//TODO Allow specifying a list of files instead of a directory
 	if len(*sourceDir) > 0 {
         //TODO Split training from source files into its own method
-		//TODO Add debug logging
-		log.Info("Opening source data...")
+		log.Info("Opening source data from: " + *sourceDir)
 		source_files, err := ioutil.ReadDir(*sourceDir)
 		if err != nil {
 			log.Fatal(err)
 		}
+        log.Debug("Opened source dir successfully, files found: ", fmt.Sprint(len(source_files)))
 
 		log.Info("Training on source data...")
 		for _, fileInfo := range source_files {
+            log.Debug("Processing file: " + fileInfo.Name())
 			if fileInfo.Name()[1] == '.' {
+                log.Debug("Hidden file, skipping")
 				continue
 			}
+            log.Debug("Opening source file")
 			sourceFile, err := os.Open(*sourceDir + "/" + fileInfo.Name())
 			if err != nil {
 				log.Fatal(err)
 			}
+            log.Debug("Training from source file...")
 			trainFromFile(brain, sourceFile)
+            log.Debug("Training from source file complete")
+            log.Debug("Closing file...")
             err = sourceFile.Close()
 			if err != nil {
 				log.Fatal(err)
 			}
+            log.Debug("File closed")
 		}
+        log.Debug("All files processed, training complete")
 
 		if len(*brainFilePath) > 0 {
+            log.Debug("Save file specified, attempting to save to: " + *brainFilePath)
 			saveBrain(brain, *brainFilePath)
+            log.Debug("Saved")
 		}
 	}
     if *trainOnly {
