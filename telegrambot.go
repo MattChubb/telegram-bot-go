@@ -14,9 +14,9 @@ import (
 	"math/rand"
 	"os"
 	"time"
-    brain "github.com/MattChubb/telegram-bot-go/brain"
-    doublemarkov "github.com/MattChubb/telegram-bot-go/brain/doublemarkov"
-    //markov "github.com/MattChubb/telegram-bot-go/brain/markov"
+    chatbrains "github.com/MattChubb/chatbrains"
+    doublemarkov "github.com/MattChubb/chatbrains/doublemarkov"
+    //markov "github.com/MattChubb/chatbrains/markov"
 )
 
 func main() {
@@ -147,7 +147,7 @@ func main() {
 	log.Info("Bot stopped")
 }
 
-func saveBrain(brain brain.Brain, file string) {
+func saveBrain(brain chatbrains.Brain, file string) {
 	log.Info("Saving brain...")
 	brainJSON, err := json.Marshal(brain)
 	if err != nil {
@@ -159,7 +159,7 @@ func saveBrain(brain brain.Brain, file string) {
 	}
 }
 
-func trainFromFile(brain brain.Brain, file *os.File) {
+func trainFromFile(brain chatbrains.Brain, file *os.File) {
 	scanner := bufio.NewScanner(file)
     buffer := make([]byte, 0, 64*1024)
     scanner.Buffer(buffer, 1024*1024)
