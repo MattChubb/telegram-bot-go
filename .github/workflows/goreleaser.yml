@@ -1,15 +1,33 @@
-name: GoReleaser Action
-  # You may pin to the exact commit or the version.
-  # uses: goreleaser/goreleaser-action@f82d6c1c344bcacabba2c841718984797f664a6b
-  uses: goreleaser/goreleaser-action@v4.2.0
-  with:
-    # GoReleaser Distribution (goreleaser or goreleaser-pro)
-    distribution: # optional, default is goreleaser
-    # GoReleaser version
-    version: # optional, default is latest
-    # Arguments to pass to GoReleaser
-    args: # optional
-    # Working directory (below repository root)
-    workdir: # optional, default is .
-    # Just install GoReleaser
-    install-only: # optional, default is false
+name: goreleaser
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      -
+        name: Set up Go
+        uses: actions/setup-go@v3
+      -
+        name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          # either 'goreleaser' (default) or 'goreleaser-pro'
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Your GoReleaser Pro key, if you are using the 'goreleaser-pro' distribution
+          # GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
