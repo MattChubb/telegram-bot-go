@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/MattChubb/chatbrains v0.0.0-20210223214530-1e570967baef
-	github.com/sirupsen/logrus v1.9.0
+	github.com/sirupsen/logrus v1.9.1
 	gopkg.in/tucnak/telebot.v2 v2.5.0
 )
 
